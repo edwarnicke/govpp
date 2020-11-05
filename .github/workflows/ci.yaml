@@ -33,8 +33,6 @@ jobs:
         id: secrets
         run: |
           echo '::set-output name=GHCR_TOKEN::${{secrets.GHCR_TOKEN}}'
-          echo '::set-output name=GIT_USER_EMAIL::${{secrets.GIT_USER_EMAIL}}'
-          echo '::set-output name=GIT_USER_NAME::${{secrets.GIT_USER_NAME}}'
       - name: Docker Login
         if: ${{steps.secrets.outputs.GHCR_TOKEN != '' }}
         run: echo ${{secrets.GHCR_TOKEN}} | docker login ghcr.io -u ${{github.repository_owner}} --password-stdin
