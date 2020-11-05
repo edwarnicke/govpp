@@ -1,0 +1,64 @@
+---
+name: ci
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
+jobs:
+  yamllint:
+    name: yamllint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: yaml-lint
+        uses: ibiqlik/action-yamllint@v1
+        with:
+          config_file: .ci/yamllint.yml
+          strict: true
+  generate:
+    name: generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.15.3
+      # This is a hack around secrets.* in steps.if statements not being supported
+      - name: Assign Secrets
+        id: secrets
+        run: |
+          echo '::set-output name=GHCR_TOKEN::${{secrets.GHCR_TOKEN}}'
+          echo '::set-output name=GIT_USER_EMAIL::${{secrets.GIT_USER_EMAIL}}'
+          echo '::set-output name=GIT_USER_NAME::${{secrets.GIT_USER_NAME}}'
+      - name: Docker Login
+        if: ${{steps.secrets.outputs.GHCR_TOKEN != '' }}
+        run: echo ${{secrets.GHCR_TOKEN}} | docker login ghcr.io -u ${{github.repository_owner}} --password-stdin
+      - name: Docker Build VPP 20.09
+        run: |
+          docker build . --build-arg VPP_VERSION=20.09-release --build-arg UBUNTU_VERSION=20.04
+          docker build -t ghcr.io/${{github.repository}}/vpp:20.09 . --target vpp --build-arg VPP_VERSION=20.09-release --build-arg UBUNTU_VERSION=20.04
+          docker build -t ghcr.io/${{github.repository}}/vpp-dbg:20.09 . --target vpp-dbg --build-arg VPP_VERSION=20.09-release --build-arg UBUNTU_VERSION=20.04
+      - name: Docker Build VPP 20.05
+        run: |
+          docker build . --build-arg VPP_VERSION=20.05-release --build-arg UBUNTU_VERSION=18.04
+          docker build -t ghcr.io/${{github.repository}}/vpp:20.05 . --target vpp --build-arg VPP_VERSION=20.05-release --build-arg UBUNTU_VERSION=18.04
+          docker build -t ghcr.io/${{github.repository}}/vpp-dbg:20.05 . --target vpp-dbg --build-arg VPP_VERSION=20.05-release --build-arg UBUNTU_VERSION=18.04
+      - name: Docker Push
+        if: ${{steps.secrets.outputs.GHCR_TOKEN != '' && github.head_ref == ''}}
+        run: |
+          docker push ghcr.io/${{github.repository}}/vpp:20.05
+          docker push ghcr.io/${{github.repository}}/vpp:20.09
+          docker push ghcr.io/${{github.repository}}/vpp-dbg:20.05
+          docker push ghcr.io/${{github.repository}}/vpp-dbg:20.09
+      - name: Generate files
+        run: go generate ./...
+      - name: Check for changes in generated code
+        run: |
+          git diff -- 'pkg/v*/binapi' || ( echo "Rerun go generate ./... locally and resubmit" && false )
+      - name: Go Build
+        run: go build ./...
