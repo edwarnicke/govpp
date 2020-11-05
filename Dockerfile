@@ -30,7 +30,7 @@ ARG GOVPP_VERSION
 RUN go get git.fd.io/govpp.git/cmd/binapi-generator@${GOVPP_VERSION}
 
 FROM alpine:3.12 as gen
-COPY --from=vpp /usr/share/vpp/api/core /usr/share/vpp/api/core
+COPY --from=vpp /usr/share/vpp/api/ /usr/share/vpp/api/
 COPY --from=binapi-generator /bin/binapi-generator /bin/binapi-generator
 WORKDIR /gen
 ARG VPP_VERSION
