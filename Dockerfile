@@ -12,7 +12,7 @@ FROM ubuntu:${UBUNTU_VERSION} as vpp
 COPY --from=repo /var/lib/apt/lists/* /var/lib/apt/lists/
 COPY --from=repo /etc/apt/sources.list.d/* /etc/apt/sources.list.d/
 ARG VPP_VERSION
-RUN apt-get install -y --no-install-recommends ca-certificates && \
+RUN apt-get install -y --no-install-recommends ca-certificates iputils-ping iproute2 && \
     VPP_INSTALL_SKIP_SYSCTL=false apt-get install -y --no-install-recommends libvppinfra=${VPP_VERSION} vpp=${VPP_VERSION} vpp-plugin-core=${VPP_VERSION} vpp-plugin-dpdk=${VPP_VERSION}
 
 FROM vpp as vpp-dbg
