@@ -41,17 +41,10 @@ jobs:
           docker build . --build-arg VPP_VERSION=20.09-release --build-arg UBUNTU_VERSION=20.04
           docker build -t ghcr.io/${{github.repository}}/vpp:20.09 . --target vpp --build-arg VPP_VERSION=20.09-release --build-arg UBUNTU_VERSION=20.04
           docker build -t ghcr.io/${{github.repository}}/vpp-dbg:20.09 . --target vpp-dbg --build-arg VPP_VERSION=20.09-release --build-arg UBUNTU_VERSION=20.04
-      - name: Docker Build VPP 20.05
-        run: |
-          docker build . --build-arg VPP_VERSION=20.05-release --build-arg UBUNTU_VERSION=18.04
-          docker build -t ghcr.io/${{github.repository}}/vpp:20.05 . --target vpp --build-arg VPP_VERSION=20.05-release --build-arg UBUNTU_VERSION=18.04
-          docker build -t ghcr.io/${{github.repository}}/vpp-dbg:20.05 . --target vpp-dbg --build-arg VPP_VERSION=20.05-release --build-arg UBUNTU_VERSION=18.04
       - name: Docker Push
         if: ${{steps.secrets.outputs.GHCR_TOKEN != '' && github.head_ref == ''}}
         run: |
-          docker push ghcr.io/${{github.repository}}/vpp:20.05
           docker push ghcr.io/${{github.repository}}/vpp:20.09
-          docker push ghcr.io/${{github.repository}}/vpp-dbg:20.05
           docker push ghcr.io/${{github.repository}}/vpp-dbg:20.09
       - name: Generate files
         run: go generate ./...

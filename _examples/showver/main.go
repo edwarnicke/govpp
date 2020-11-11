@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/edwarnicke/govpp/pkg/v2009/binapi/vpe"
+	"github.com/edwarnicke/govpp/binapi/vpe"
 	"github.com/edwarnicke/log"
 
 	"github.com/edwarnicke/vpphelper"
