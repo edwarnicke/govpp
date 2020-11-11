@@ -14,6 +14,8 @@ github.com/edwarnicke/exechelper v1.0.2 h1:dD49Ui2U0FBFxxhalnKw6vLS0P0TkgnXBRvKL
 github.com/edwarnicke/exechelper v1.0.2/go.mod h1:/T271jtNX/ND4De6pa2aRy2+8sNtyCDB1A2pp4M+fUs=
 github.com/edwarnicke/govpp v0.0.0-20201105040822-8de58b4ffe9a h1:gYuRI7rEPX6ZLKAX5wll6gH3Z023yaorcRdyoedJmWY=
 github.com/edwarnicke/govpp v0.0.0-20201105040822-8de58b4ffe9a/go.mod h1:wQua0G5mhpwGNG4HuudYCikLZviQI8g7CngtH9fJFCo=
+github.com/edwarnicke/govpp v0.0.0-20201111163523-106f68b6ba26 h1:DBIEXF3iaF3RU337Yx+2oLKnW8xrQQUNDN7HMBIaH68=
+github.com/edwarnicke/govpp v0.0.0-20201111163523-106f68b6ba26/go.mod h1:wQua0G5mhpwGNG4HuudYCikLZviQI8g7CngtH9fJFCo=
 github.com/edwarnicke/log v1.0.0 h1:T6uRNCmR99GTt/CpRr2Gz8eGW8fm0HMThDNGdNxPaGk=
 github.com/edwarnicke/log v1.0.0/go.mod h1:eWsQQlQ0IU5wHlJvyXFH3dS8s2g9GzN7JnXodo6yaIY=
 github.com/edwarnicke/vpphelper v0.0.0-20201105154030-238d2a3930ff h1:LeIMAJBBt7o+MBhliF/Mnfp6NN8Ti45sw/N8WD92MUg=
