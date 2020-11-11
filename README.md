@@ -16,8 +16,8 @@ This repo also provides minimal docker containers for running vpp:
 If you want a version of VPP that is not of general issue, you can fork *this* repo and add it yourself.
 Because things are very heavily patterned and generated, its really quite easy:
 
-1. Change [gen.go](https://github.com/edwarnicke/govpp/blob/main/gen.go) to utilize the version you want
+1. Change [gen.go](https://github.com/edwarnicke/govpp/blob/main/gen.go#L19) to utilize the version you want
 2. ```go generate ./...```
-3. Change the Docker Build Step to your desired vpp version [.github/workflows/ci.yaml](https://github.com/edwarnicke/govpp/blob/main/.github/workflows/ci.yaml#L46)
-4. Change the the Docker Push Step to your desired vpp version [.github/workflows/ci.yaml](https://github.com/edwarnicke/govpp/blob/main/.github/workflows/ci.yaml#L51)
+3. Change the Docker Build Step to your desired vpp version [.github/workflows/ci.yaml](https://github.com/edwarnicke/govpp/blob/main/.github/workflows/ci.yaml#L39)
+4. Change the the Docker Push Step to your desired vpp version [.github/workflows/ci.yaml](https://github.com/edwarnicke/govpp/blob/main/.github/workflows/ci.yaml#L44)
 5. Add a GHCR_TOKEN secret to your fork containing a PAT allowing you to push to your [Github Container Registry](https://docs.github.com/en/free-pro-team@latest/packages/managing-container-images-with-github-container-registry/pushing-and-pulling-docker-images)
