@@ -24,7 +24,7 @@ ARG VPP_VERSION
 COPY --from=vppbuild /var/lib/apt/lists/* /var/lib/apt/lists/
 COPY --from=vppbuild [ "/vpp/build-root/libvppinfra_*_amd64.deb", "/vpp/build-root/vpp_*_amd64.deb", "/vpp/build-root/vpp-plugin-core_*_amd64.deb", "/vpp/build-root/vpp-plugin-dpdk_*_amd64.deb", "/pkg/"]
 ARG VPP_VERSION
-RUN VPP_INSTALL_SKIP_SYSCTL=false apt install -f -y --no-install-recommends /pkg/*.deb; \
+RUN VPP_INSTALL_SKIP_SYSCTL=false apt install -f -y --no-install-recommends /pkg/*.deb ca-certificates iputils-ping iproute2 tcpdump; \
     rm -rf /var/lib/apt/lists/*; \
     rm -rf /pkg
 
