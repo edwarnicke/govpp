@@ -11,7 +11,7 @@ This repo also provides minimal docker containers for running vpp:
 - [vpp](https://github.com/users/edwarnicke/packages/container/package/govpp%2Fvpp)
 - [vpp-dbg](https://github.com/users/edwarnicke/packages/container/package/govpp%2Fvpp) - debug image
 
-## What to do if you need a differnt version of vpp:
+## What to do if you need a different version of vpp:
 
 If you want a version of VPP, you can fork *this* repo and add it yourself.
 Because things are very heavily patterned and generated, its really quite easy:
