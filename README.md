@@ -31,4 +31,4 @@ Change the version of [govpp in the go.mod file](https://github.com/edwarnicke/g
 
 ## How the magic works ##
 
-See [MAGIC.md](MAGIC.md).
+See [How the Magic Works](https://github.com/edwarnicke/govpp/issues/16).
