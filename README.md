@@ -25,3 +25,10 @@ Because things are very heavily patterned and generated, its really quite easy:
 
 If you want to add patches to vpp simply add them to the [patch/](https://github.com/edwarnicke/govpp/blob/main/patch/) directory.
 
+## What to do if you need a different version of govpp
+
+Change the version of [govpp in the go.mod file](https://github.com/edwarnicke/govpp/blob/main/go.mod#L5)
+
+## How the magic works ##
+
+See [MAGIC.md](MAGIC.md).
