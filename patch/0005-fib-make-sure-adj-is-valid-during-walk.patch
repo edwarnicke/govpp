@@ -1,0 +1,42 @@
+From 5b2b2e7af8b5983a010bfa79aa2f6b41380cc4a2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Ganne?= <bganne@cisco.com>
+Date: Tue, 8 Jun 2021 16:25:14 +0200
+Subject: [PATCH 1/2] fib: make sure adj is valid during walk
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The adj can be deleted during fib_walk_sync(), make sure it can happen
+only after clearing the SYNC_WALK_ACTIVE flag.
+
+Type: fix
+
+Change-Id: I68be00e9602e2783d9dced71c51547c38b7e8a00
+Signed-off-by: Benoît Ganne <bganne@cisco.com>
+---
+ src/vnet/adj/adj_nbr.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/vnet/adj/adj_nbr.c b/src/vnet/adj/adj_nbr.c
+index 921588a7e..7c7a7d850 100644
+--- a/src/vnet/adj/adj_nbr.c
++++ b/src/vnet/adj/adj_nbr.c
+@@ -729,12 +729,15 @@ adj_nbr_interface_state_change_one (adj_index_t ai,
+     };
+     ip_adjacency_t *adj;
+ 
++    adj_lock (ai);
++
+     adj = adj_get(ai);
+ 
+     adj->ia_flags |= ADJ_FLAG_SYNC_WALK_ACTIVE;
+     fib_walk_sync(FIB_NODE_TYPE_ADJ, ai, &bw_ctx);
+     adj->ia_flags &= ~ADJ_FLAG_SYNC_WALK_ACTIVE;
+ 
++    adj_unlock (ai);
+     return (ADJ_WALK_RC_CONTINUE);
+ }
+ 
+-- 
+2.25.1
+
