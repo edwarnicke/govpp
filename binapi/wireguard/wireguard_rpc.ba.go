@@ -11,8 +11,9 @@ import (
 	vpe "github.com/edwarnicke/govpp/binapi/vpe"
 )
 
-// RPCService defines RPC service  wireguard.
+// RPCService defines RPC service wireguard.
 type RPCService interface {
+	WantWireguardPeerEvents(ctx context.Context, in *WantWireguardPeerEvents) (*WantWireguardPeerEventsReply, error)
 	WireguardInterfaceCreate(ctx context.Context, in *WireguardInterfaceCreate) (*WireguardInterfaceCreateReply, error)
 	WireguardInterfaceDelete(ctx context.Context, in *WireguardInterfaceDelete) (*WireguardInterfaceDeleteReply, error)
 	WireguardInterfaceDump(ctx context.Context, in *WireguardInterfaceDump) (RPCService_WireguardInterfaceDumpClient, error)
@@ -29,13 +30,22 @@ func NewServiceClient(conn api.Connection) RPCService {
 	return &serviceClient{conn}
 }
 
+func (c *serviceClient) WantWireguardPeerEvents(ctx context.Context, in *WantWireguardPeerEvents) (*WantWireguardPeerEventsReply, error) {
+	out := new(WantWireguardPeerEventsReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
 func (c *serviceClient) WireguardInterfaceCreate(ctx context.Context, in *WireguardInterfaceCreate) (*WireguardInterfaceCreateReply, error) {
 	out := new(WireguardInterfaceCreateReply)
 	err := c.conn.Invoke(ctx, in, out)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) WireguardInterfaceDelete(ctx context.Context, in *WireguardInterfaceDelete) (*WireguardInterfaceDeleteReply, error) {
@@ -44,7 +54,7 @@ func (c *serviceClient) WireguardInterfaceDelete(ctx context.Context, in *Wiregu
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) WireguardInterfaceDump(ctx context.Context, in *WireguardInterfaceDump) (RPCService_WireguardInterfaceDumpClient, error) {
@@ -92,7 +102,7 @@ func (c *serviceClient) WireguardPeerAdd(ctx context.Context, in *WireguardPeerA
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) WireguardPeerRemove(ctx context.Context, in *WireguardPeerRemove) (*WireguardPeerRemoveReply, error) {
@@ -101,7 +111,7 @@ func (c *serviceClient) WireguardPeerRemove(ctx context.Context, in *WireguardPe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) WireguardPeersDump(ctx context.Context, in *WireguardPeersDump) (RPCService_WireguardPeersDumpClient, error) {
