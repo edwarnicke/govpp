@@ -8,7 +8,7 @@ import (
 	api "git.fd.io/govpp.git/api"
 )
 
-// RPCService defines RPC service  crypto.
+// RPCService defines RPC service crypto.
 type RPCService interface {
 	CryptoSetAsyncDispatch(ctx context.Context, in *CryptoSetAsyncDispatch) (*CryptoSetAsyncDispatchReply, error)
 	CryptoSetHandler(ctx context.Context, in *CryptoSetHandler) (*CryptoSetHandlerReply, error)
@@ -28,7 +28,7 @@ func (c *serviceClient) CryptoSetAsyncDispatch(ctx context.Context, in *CryptoSe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) CryptoSetHandler(ctx context.Context, in *CryptoSetHandler) (*CryptoSetHandlerReply, error) {
@@ -37,5 +37,5 @@ func (c *serviceClient) CryptoSetHandler(ctx context.Context, in *CryptoSetHandl
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }

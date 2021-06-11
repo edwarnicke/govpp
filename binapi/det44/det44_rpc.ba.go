@@ -11,7 +11,7 @@ import (
 	vpe "github.com/edwarnicke/govpp/binapi/vpe"
 )
 
-// RPCService defines RPC service  det44.
+// RPCService defines RPC service det44.
 type RPCService interface {
 	Det44AddDelMap(ctx context.Context, in *Det44AddDelMap) (*Det44AddDelMapReply, error)
 	Det44CloseSessionIn(ctx context.Context, in *Det44CloseSessionIn) (*Det44CloseSessionInReply, error)
@@ -48,7 +48,7 @@ func (c *serviceClient) Det44AddDelMap(ctx context.Context, in *Det44AddDelMap) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44CloseSessionIn(ctx context.Context, in *Det44CloseSessionIn) (*Det44CloseSessionInReply, error) {
@@ -57,7 +57,7 @@ func (c *serviceClient) Det44CloseSessionIn(ctx context.Context, in *Det44CloseS
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44CloseSessionOut(ctx context.Context, in *Det44CloseSessionOut) (*Det44CloseSessionOutReply, error) {
@@ -66,7 +66,7 @@ func (c *serviceClient) Det44CloseSessionOut(ctx context.Context, in *Det44Close
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44Forward(ctx context.Context, in *Det44Forward) (*Det44ForwardReply, error) {
@@ -75,7 +75,7 @@ func (c *serviceClient) Det44Forward(ctx context.Context, in *Det44Forward) (*De
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44GetTimeouts(ctx context.Context, in *Det44GetTimeouts) (*Det44GetTimeoutsReply, error) {
@@ -84,7 +84,7 @@ func (c *serviceClient) Det44GetTimeouts(ctx context.Context, in *Det44GetTimeou
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44InterfaceAddDelFeature(ctx context.Context, in *Det44InterfaceAddDelFeature) (*Det44InterfaceAddDelFeatureReply, error) {
@@ -93,7 +93,7 @@ func (c *serviceClient) Det44InterfaceAddDelFeature(ctx context.Context, in *Det
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44InterfaceDump(ctx context.Context, in *Det44InterfaceDump) (RPCService_Det44InterfaceDumpClient, error) {
@@ -180,7 +180,7 @@ func (c *serviceClient) Det44PluginEnableDisable(ctx context.Context, in *Det44P
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44Reverse(ctx context.Context, in *Det44Reverse) (*Det44ReverseReply, error) {
@@ -189,7 +189,7 @@ func (c *serviceClient) Det44Reverse(ctx context.Context, in *Det44Reverse) (*De
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Det44SessionDump(ctx context.Context, in *Det44SessionDump) (RPCService_Det44SessionDumpClient, error) {
@@ -237,7 +237,7 @@ func (c *serviceClient) Det44SetTimeouts(ctx context.Context, in *Det44SetTimeou
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatDetAddDelMap(ctx context.Context, in *NatDetAddDelMap) (*NatDetAddDelMapReply, error) {
@@ -246,7 +246,7 @@ func (c *serviceClient) NatDetAddDelMap(ctx context.Context, in *NatDetAddDelMap
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatDetCloseSessionIn(ctx context.Context, in *NatDetCloseSessionIn) (*NatDetCloseSessionInReply, error) {
@@ -255,7 +255,7 @@ func (c *serviceClient) NatDetCloseSessionIn(ctx context.Context, in *NatDetClos
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatDetCloseSessionOut(ctx context.Context, in *NatDetCloseSessionOut) (*NatDetCloseSessionOutReply, error) {
@@ -264,7 +264,7 @@ func (c *serviceClient) NatDetCloseSessionOut(ctx context.Context, in *NatDetClo
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatDetForward(ctx context.Context, in *NatDetForward) (*NatDetForwardReply, error) {
@@ -273,7 +273,7 @@ func (c *serviceClient) NatDetForward(ctx context.Context, in *NatDetForward) (*
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatDetMapDump(ctx context.Context, in *NatDetMapDump) (RPCService_NatDetMapDumpClient, error) {
@@ -321,7 +321,7 @@ func (c *serviceClient) NatDetReverse(ctx context.Context, in *NatDetReverse) (*
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatDetSessionDump(ctx context.Context, in *NatDetSessionDump) (RPCService_NatDetSessionDumpClient, error) {

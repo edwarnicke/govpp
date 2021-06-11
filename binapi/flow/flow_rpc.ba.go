@@ -8,7 +8,7 @@ import (
 	api "git.fd.io/govpp.git/api"
 )
 
-// RPCService defines RPC service  flow.
+// RPCService defines RPC service flow.
 type RPCService interface {
 	FlowAdd(ctx context.Context, in *FlowAdd) (*FlowAddReply, error)
 	FlowDel(ctx context.Context, in *FlowDel) (*FlowDelReply, error)
@@ -30,7 +30,7 @@ func (c *serviceClient) FlowAdd(ctx context.Context, in *FlowAdd) (*FlowAddReply
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) FlowDel(ctx context.Context, in *FlowDel) (*FlowDelReply, error) {
@@ -39,7 +39,7 @@ func (c *serviceClient) FlowDel(ctx context.Context, in *FlowDel) (*FlowDelReply
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) FlowDisable(ctx context.Context, in *FlowDisable) (*FlowDisableReply, error) {
@@ -48,7 +48,7 @@ func (c *serviceClient) FlowDisable(ctx context.Context, in *FlowDisable) (*Flow
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) FlowEnable(ctx context.Context, in *FlowEnable) (*FlowEnableReply, error) {
@@ -57,5 +57,5 @@ func (c *serviceClient) FlowEnable(ctx context.Context, in *FlowEnable) (*FlowEn
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }

@@ -307,7 +307,7 @@ type FlowUnion struct {
 	// - IP6Vxlan *FlowIP6Vxlan
 	// - IP4Gtpc *FlowIP4Gtpc
 	// - IP4Gtpu *FlowIP4Gtpu
-	XXX_UnionData [8]byte
+	XXX_UnionData [80]byte
 }
 
 func FlowUnionEthernet(a FlowEthernet) (u FlowUnion) {

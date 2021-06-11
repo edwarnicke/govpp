@@ -11,7 +11,7 @@ import (
 	vpe "github.com/edwarnicke/govpp/binapi/vpe"
 )
 
-// RPCService defines RPC service  nat66.
+// RPCService defines RPC service nat66.
 type RPCService interface {
 	Nat66AddDelInterface(ctx context.Context, in *Nat66AddDelInterface) (*Nat66AddDelInterfaceReply, error)
 	Nat66AddDelStaticMapping(ctx context.Context, in *Nat66AddDelStaticMapping) (*Nat66AddDelStaticMappingReply, error)
@@ -33,7 +33,7 @@ func (c *serviceClient) Nat66AddDelInterface(ctx context.Context, in *Nat66AddDe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat66AddDelStaticMapping(ctx context.Context, in *Nat66AddDelStaticMapping) (*Nat66AddDelStaticMappingReply, error) {
@@ -42,7 +42,7 @@ func (c *serviceClient) Nat66AddDelStaticMapping(ctx context.Context, in *Nat66A
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat66InterfaceDump(ctx context.Context, in *Nat66InterfaceDump) (RPCService_Nat66InterfaceDumpClient, error) {

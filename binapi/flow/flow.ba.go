@@ -48,15 +48,15 @@ func (m *FlowAdd) Size() (size int) {
 	if m == nil {
 		return 0
 	}
-	size += 4     // m.Flow.Type
-	size += 4     // m.Flow.Index
-	size += 4     // m.Flow.Actions
-	size += 4     // m.Flow.MarkFlowID
-	size += 4     // m.Flow.RedirectNodeIndex
-	size += 4     // m.Flow.RedirectDeviceInputNextIndex
-	size += 4     // m.Flow.RedirectQueue
-	size += 4     // m.Flow.BufferAdvance
-	size += 1 * 8 // m.Flow.Flow
+	size += 4      // m.Flow.Type
+	size += 4      // m.Flow.Index
+	size += 4      // m.Flow.Actions
+	size += 4      // m.Flow.MarkFlowID
+	size += 4      // m.Flow.RedirectNodeIndex
+	size += 4      // m.Flow.RedirectDeviceInputNextIndex
+	size += 4      // m.Flow.RedirectQueue
+	size += 4      // m.Flow.BufferAdvance
+	size += 1 * 80 // m.Flow.Flow
 	return size
 }
 func (m *FlowAdd) Marshal(b []byte) ([]byte, error) {
@@ -72,7 +72,7 @@ func (m *FlowAdd) Marshal(b []byte) ([]byte, error) {
 	buf.EncodeUint32(m.Flow.RedirectDeviceInputNextIndex)
 	buf.EncodeUint32(m.Flow.RedirectQueue)
 	buf.EncodeInt32(m.Flow.BufferAdvance)
-	buf.EncodeBytes(m.Flow.Flow.XXX_UnionData[:], 8)
+	buf.EncodeBytes(m.Flow.Flow.XXX_UnionData[:], 80)
 	return buf.Bytes(), nil
 }
 func (m *FlowAdd) Unmarshal(b []byte) error {
@@ -85,7 +85,7 @@ func (m *FlowAdd) Unmarshal(b []byte) error {
 	m.Flow.RedirectDeviceInputNextIndex = buf.DecodeUint32()
 	m.Flow.RedirectQueue = buf.DecodeUint32()
 	m.Flow.BufferAdvance = buf.DecodeInt32()
-	copy(m.Flow.Flow.XXX_UnionData[:], buf.DecodeBytes(8))
+	copy(m.Flow.Flow.XXX_UnionData[:], buf.DecodeBytes(80))
 	return nil
 }
 

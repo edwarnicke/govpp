@@ -8,7 +8,7 @@ import (
 	api "git.fd.io/govpp.git/api"
 )
 
-// RPCService defines RPC service  adl.
+// RPCService defines RPC service adl.
 type RPCService interface {
 	AdlAllowlistEnableDisable(ctx context.Context, in *AdlAllowlistEnableDisable) (*AdlAllowlistEnableDisableReply, error)
 	AdlInterfaceEnableDisable(ctx context.Context, in *AdlInterfaceEnableDisable) (*AdlInterfaceEnableDisableReply, error)
@@ -28,7 +28,7 @@ func (c *serviceClient) AdlAllowlistEnableDisable(ctx context.Context, in *AdlAl
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) AdlInterfaceEnableDisable(ctx context.Context, in *AdlInterfaceEnableDisable) (*AdlInterfaceEnableDisableReply, error) {
@@ -37,5 +37,5 @@ func (c *serviceClient) AdlInterfaceEnableDisable(ctx context.Context, in *AdlIn
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }

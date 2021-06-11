@@ -8,7 +8,7 @@ import (
 	api "git.fd.io/govpp.git/api"
 )
 
-// RPCService defines RPC service  nsim.
+// RPCService defines RPC service nsim.
 type RPCService interface {
 	NsimConfigure(ctx context.Context, in *NsimConfigure) (*NsimConfigureReply, error)
 	NsimConfigure2(ctx context.Context, in *NsimConfigure2) (*NsimConfigure2Reply, error)
@@ -30,7 +30,7 @@ func (c *serviceClient) NsimConfigure(ctx context.Context, in *NsimConfigure) (*
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NsimConfigure2(ctx context.Context, in *NsimConfigure2) (*NsimConfigure2Reply, error) {
@@ -39,7 +39,7 @@ func (c *serviceClient) NsimConfigure2(ctx context.Context, in *NsimConfigure2) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NsimCrossConnectEnableDisable(ctx context.Context, in *NsimCrossConnectEnableDisable) (*NsimCrossConnectEnableDisableReply, error) {
@@ -48,7 +48,7 @@ func (c *serviceClient) NsimCrossConnectEnableDisable(ctx context.Context, in *N
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NsimOutputFeatureEnableDisable(ctx context.Context, in *NsimOutputFeatureEnableDisable) (*NsimOutputFeatureEnableDisableReply, error) {
@@ -57,5 +57,5 @@ func (c *serviceClient) NsimOutputFeatureEnableDisable(ctx context.Context, in *
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
