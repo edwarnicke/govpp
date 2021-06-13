@@ -8,7 +8,7 @@ import (
 	api "git.fd.io/govpp.git/api"
 )
 
-// RPCService defines RPC service  crypto_sw_scheduler.
+// RPCService defines RPC service crypto_sw_scheduler.
 type RPCService interface {
 	CryptoSwSchedulerSetWorker(ctx context.Context, in *CryptoSwSchedulerSetWorker) (*CryptoSwSchedulerSetWorkerReply, error)
 }
@@ -27,5 +27,5 @@ func (c *serviceClient) CryptoSwSchedulerSetWorker(ctx context.Context, in *Cryp
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }

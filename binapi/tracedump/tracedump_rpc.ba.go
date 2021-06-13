@@ -10,7 +10,7 @@ import (
 	api "git.fd.io/govpp.git/api"
 )
 
-// RPCService defines RPC service  tracedump.
+// RPCService defines RPC service tracedump.
 type RPCService interface {
 	TraceDump(ctx context.Context, in *TraceDump) (RPCService_TraceDumpClient, error)
 }

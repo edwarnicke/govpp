@@ -11,7 +11,7 @@ import (
 	vpe "github.com/edwarnicke/govpp/binapi/vpe"
 )
 
-// RPCService defines RPC service  nat.
+// RPCService defines RPC service nat.
 type RPCService interface {
 	Nat44AddDelAddressRange(ctx context.Context, in *Nat44AddDelAddressRange) (*Nat44AddDelAddressRangeReply, error)
 	Nat44AddDelIdentityMapping(ctx context.Context, in *Nat44AddDelIdentityMapping) (*Nat44AddDelIdentityMappingReply, error)
@@ -82,7 +82,7 @@ func (c *serviceClient) Nat44AddDelAddressRange(ctx context.Context, in *Nat44Ad
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44AddDelIdentityMapping(ctx context.Context, in *Nat44AddDelIdentityMapping) (*Nat44AddDelIdentityMappingReply, error) {
@@ -91,7 +91,7 @@ func (c *serviceClient) Nat44AddDelIdentityMapping(ctx context.Context, in *Nat4
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44AddDelInterfaceAddr(ctx context.Context, in *Nat44AddDelInterfaceAddr) (*Nat44AddDelInterfaceAddrReply, error) {
@@ -100,7 +100,7 @@ func (c *serviceClient) Nat44AddDelInterfaceAddr(ctx context.Context, in *Nat44A
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44AddDelLbStaticMapping(ctx context.Context, in *Nat44AddDelLbStaticMapping) (*Nat44AddDelLbStaticMappingReply, error) {
@@ -109,7 +109,7 @@ func (c *serviceClient) Nat44AddDelLbStaticMapping(ctx context.Context, in *Nat4
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44AddDelStaticMapping(ctx context.Context, in *Nat44AddDelStaticMapping) (*Nat44AddDelStaticMappingReply, error) {
@@ -118,7 +118,7 @@ func (c *serviceClient) Nat44AddDelStaticMapping(ctx context.Context, in *Nat44A
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44AddDelStaticMappingV2(ctx context.Context, in *Nat44AddDelStaticMappingV2) (*Nat44AddDelStaticMappingV2Reply, error) {
@@ -127,7 +127,7 @@ func (c *serviceClient) Nat44AddDelStaticMappingV2(ctx context.Context, in *Nat4
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44AddressDump(ctx context.Context, in *Nat44AddressDump) (RPCService_Nat44AddressDumpClient, error) {
@@ -175,7 +175,7 @@ func (c *serviceClient) Nat44DelSession(ctx context.Context, in *Nat44DelSession
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44DelUser(ctx context.Context, in *Nat44DelUser) (*Nat44DelUserReply, error) {
@@ -184,7 +184,7 @@ func (c *serviceClient) Nat44DelUser(ctx context.Context, in *Nat44DelUser) (*Na
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44ForwardingEnableDisable(ctx context.Context, in *Nat44ForwardingEnableDisable) (*Nat44ForwardingEnableDisableReply, error) {
@@ -193,7 +193,7 @@ func (c *serviceClient) Nat44ForwardingEnableDisable(ctx context.Context, in *Na
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44ForwardingIsEnabled(ctx context.Context, in *Nat44ForwardingIsEnabled) (*Nat44ForwardingIsEnabledReply, error) {
@@ -250,7 +250,7 @@ func (c *serviceClient) Nat44InterfaceAddDelFeature(ctx context.Context, in *Nat
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44InterfaceAddDelOutputFeature(ctx context.Context, in *Nat44InterfaceAddDelOutputFeature) (*Nat44InterfaceAddDelOutputFeatureReply, error) {
@@ -259,7 +259,7 @@ func (c *serviceClient) Nat44InterfaceAddDelOutputFeature(ctx context.Context, i
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44InterfaceAddrDump(ctx context.Context, in *Nat44InterfaceAddrDump) (RPCService_Nat44InterfaceAddrDumpClient, error) {
@@ -385,7 +385,7 @@ func (c *serviceClient) Nat44LbStaticMappingAddDelLocal(ctx context.Context, in 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44LbStaticMappingDump(ctx context.Context, in *Nat44LbStaticMappingDump) (RPCService_Nat44LbStaticMappingDumpClient, error) {
@@ -433,7 +433,7 @@ func (c *serviceClient) Nat44SessionCleanup(ctx context.Context, in *Nat44Sessio
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44SetSessionLimit(ctx context.Context, in *Nat44SetSessionLimit) (*Nat44SetSessionLimitReply, error) {
@@ -442,7 +442,7 @@ func (c *serviceClient) Nat44SetSessionLimit(ctx context.Context, in *Nat44SetSe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat44StaticMappingDump(ctx context.Context, in *Nat44StaticMappingDump) (RPCService_Nat44StaticMappingDumpClient, error) {
@@ -568,7 +568,7 @@ func (c *serviceClient) Nat64AddDelInterface(ctx context.Context, in *Nat64AddDe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat64AddDelInterfaceAddr(ctx context.Context, in *Nat64AddDelInterfaceAddr) (*Nat64AddDelInterfaceAddrReply, error) {
@@ -577,7 +577,7 @@ func (c *serviceClient) Nat64AddDelInterfaceAddr(ctx context.Context, in *Nat64A
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat64AddDelPoolAddrRange(ctx context.Context, in *Nat64AddDelPoolAddrRange) (*Nat64AddDelPoolAddrRangeReply, error) {
@@ -586,7 +586,7 @@ func (c *serviceClient) Nat64AddDelPoolAddrRange(ctx context.Context, in *Nat64A
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat64AddDelPrefix(ctx context.Context, in *Nat64AddDelPrefix) (*Nat64AddDelPrefixReply, error) {
@@ -595,7 +595,7 @@ func (c *serviceClient) Nat64AddDelPrefix(ctx context.Context, in *Nat64AddDelPr
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat64AddDelStaticBib(ctx context.Context, in *Nat64AddDelStaticBib) (*Nat64AddDelStaticBibReply, error) {
@@ -604,7 +604,7 @@ func (c *serviceClient) Nat64AddDelStaticBib(ctx context.Context, in *Nat64AddDe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat64BibDump(ctx context.Context, in *Nat64BibDump) (RPCService_Nat64BibDumpClient, error) {
@@ -808,7 +808,7 @@ func (c *serviceClient) NatControlPing(ctx context.Context, in *NatControlPing) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatGetAddrAndPortAllocAlg(ctx context.Context, in *NatGetAddrAndPortAllocAlg) (*NatGetAddrAndPortAllocAlgReply, error) {
@@ -817,7 +817,7 @@ func (c *serviceClient) NatGetAddrAndPortAllocAlg(ctx context.Context, in *NatGe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatGetMssClamping(ctx context.Context, in *NatGetMssClamping) (*NatGetMssClampingReply, error) {
@@ -826,7 +826,7 @@ func (c *serviceClient) NatGetMssClamping(ctx context.Context, in *NatGetMssClam
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatGetTimeouts(ctx context.Context, in *NatGetTimeouts) (*NatGetTimeoutsReply, error) {
@@ -835,7 +835,7 @@ func (c *serviceClient) NatGetTimeouts(ctx context.Context, in *NatGetTimeouts) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatHaFlush(ctx context.Context, in *NatHaFlush) (*NatHaFlushReply, error) {
@@ -844,7 +844,7 @@ func (c *serviceClient) NatHaFlush(ctx context.Context, in *NatHaFlush) (*NatHaF
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatHaGetFailover(ctx context.Context, in *NatHaGetFailover) (*NatHaGetFailoverReply, error) {
@@ -853,7 +853,7 @@ func (c *serviceClient) NatHaGetFailover(ctx context.Context, in *NatHaGetFailov
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatHaGetListener(ctx context.Context, in *NatHaGetListener) (*NatHaGetListenerReply, error) {
@@ -862,7 +862,7 @@ func (c *serviceClient) NatHaGetListener(ctx context.Context, in *NatHaGetListen
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatHaResync(ctx context.Context, in *NatHaResync) (*NatHaResyncReply, error) {
@@ -871,7 +871,7 @@ func (c *serviceClient) NatHaResync(ctx context.Context, in *NatHaResync) (*NatH
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatHaSetFailover(ctx context.Context, in *NatHaSetFailover) (*NatHaSetFailoverReply, error) {
@@ -880,7 +880,7 @@ func (c *serviceClient) NatHaSetFailover(ctx context.Context, in *NatHaSetFailov
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatHaSetListener(ctx context.Context, in *NatHaSetListener) (*NatHaSetListenerReply, error) {
@@ -889,7 +889,7 @@ func (c *serviceClient) NatHaSetListener(ctx context.Context, in *NatHaSetListen
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatIpfixEnableDisable(ctx context.Context, in *NatIpfixEnableDisable) (*NatIpfixEnableDisableReply, error) {
@@ -898,7 +898,7 @@ func (c *serviceClient) NatIpfixEnableDisable(ctx context.Context, in *NatIpfixE
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatSetAddrAndPortAllocAlg(ctx context.Context, in *NatSetAddrAndPortAllocAlg) (*NatSetAddrAndPortAllocAlgReply, error) {
@@ -907,7 +907,7 @@ func (c *serviceClient) NatSetAddrAndPortAllocAlg(ctx context.Context, in *NatSe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatSetLogLevel(ctx context.Context, in *NatSetLogLevel) (*NatSetLogLevelReply, error) {
@@ -916,7 +916,7 @@ func (c *serviceClient) NatSetLogLevel(ctx context.Context, in *NatSetLogLevel) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatSetMssClamping(ctx context.Context, in *NatSetMssClamping) (*NatSetMssClampingReply, error) {
@@ -925,7 +925,7 @@ func (c *serviceClient) NatSetMssClamping(ctx context.Context, in *NatSetMssClam
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatSetTimeouts(ctx context.Context, in *NatSetTimeouts) (*NatSetTimeoutsReply, error) {
@@ -934,7 +934,7 @@ func (c *serviceClient) NatSetTimeouts(ctx context.Context, in *NatSetTimeouts) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatSetWorkers(ctx context.Context, in *NatSetWorkers) (*NatSetWorkersReply, error) {
@@ -943,7 +943,7 @@ func (c *serviceClient) NatSetWorkers(ctx context.Context, in *NatSetWorkers) (*
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatShowConfig(ctx context.Context, in *NatShowConfig) (*NatShowConfigReply, error) {
@@ -952,7 +952,7 @@ func (c *serviceClient) NatShowConfig(ctx context.Context, in *NatShowConfig) (*
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatShowConfig2(ctx context.Context, in *NatShowConfig2) (*NatShowConfig2Reply, error) {
@@ -961,7 +961,7 @@ func (c *serviceClient) NatShowConfig2(ctx context.Context, in *NatShowConfig2) 
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) NatWorkerDump(ctx context.Context, in *NatWorkerDump) (RPCService_NatWorkerDumpClient, error) {

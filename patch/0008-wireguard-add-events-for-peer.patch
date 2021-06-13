@@ -1,0 +1,1155 @@
+From ad49921da8add668b91f04869bf458c332385c68 Mon Sep 17 00:00:00 2001
+From: Artem Glazychev <artem.glazychev@xored.com>
+Date: Fri, 11 Jun 2021 00:10:00 +0700
+Subject: [PATCH 2/2] wireguard: add events for peer
+
+we can receive events from peer about its state:
+-WIREGUARD_PEER_STATUS_DEAD
+-WIREGUARD_PEER_ESTABLISHED
+
+Change-Id: Ide83fbe2cfafa79ded5bcf3f6a884c26a7583db0
+Signed-off-by: Artem Glazychev <artem.glazychev@xored.com>
+---
+ src/plugins/wireguard/test/test_wireguard.py | 144 +++++++++++++++++--
+ src/plugins/wireguard/wireguard.api          |  38 +++++
+ src/plugins/wireguard/wireguard_api.c        | 125 +++++++++++++++-
+ src/plugins/wireguard/wireguard_input.c      |  71 +++++----
+ src/plugins/wireguard/wireguard_output_tun.c |  40 +++---
+ src/plugins/wireguard/wireguard_peer.c       | 115 +++++++++------
+ src/plugins/wireguard/wireguard_peer.h       |  29 +++-
+ src/plugins/wireguard/wireguard_send.c       |  24 ++--
+ src/plugins/wireguard/wireguard_timer.c      |   4 +-
+ 9 files changed, 464 insertions(+), 126 deletions(-)
+
+diff --git a/src/plugins/wireguard/test/test_wireguard.py b/src/plugins/wireguard/test/test_wireguard.py
+index 95d34f336..9c712c111 100755
+--- a/src/plugins/wireguard/test/test_wireguard.py
++++ b/src/plugins/wireguard/test/test_wireguard.py
+@@ -3,6 +3,7 @@
+ 
+ import datetime
+ import base64
++import os
+ 
+ from hashlib import blake2s
+ from scapy.packet import Packet
+@@ -25,6 +26,7 @@ from vpp_ipip_tun_interface import VppIpIpTunInterface
+ from vpp_interface import VppInterface
+ from vpp_ip_route import VppIpRoute, VppRoutePath
+ from vpp_object import VppObject
++from vpp_papi import VppEnum
+ from framework import VppTestCase
+ from re import compile
+ import unittest
+@@ -92,6 +94,19 @@ class VppWgInterface(VppInterface):
+                 return True
+         return False
+ 
++    def want_events(self, peer_index=0xffffffff):
++        self.test.vapi.want_wireguard_peer_events(
++            enable_disable=1,
++            pid=os.getpid(),
++            sw_if_index=self._sw_if_index,
++            peer_index=peer_index)
++
++    def wait_events(self, expect, peers, timeout=5):
++        for i in range(len(peers)):
++            rv = self.test.vapi.wait_for_event(timeout, "wireguard_peer_event")
++            self.test.assertEqual(rv.peer_index, peers[i])
++            self.test.assertEqual(rv.flags, expect)
++
+     def __str__(self):
+         return self.object_id()
+ 
+@@ -343,6 +358,18 @@ class VppWgPeer(VppObject):
+                 self._test.assertEqual(rx[IPv6].dst, tx[IPv6].dst)
+                 self._test.assertEqual(rx[IPv6].ttl, tx[IPv6].ttl-1)
+ 
++    def want_events(self):
++        self._test.vapi.want_wireguard_peer_events(
++            enable_disable=1,
++            pid=os.getpid(),
++            peer_index=self.index,
++            sw_if_index=self.itf.sw_if_index)
++
++    def wait_event(self, expect, timeout=5):
++        rv = self._test.vapi.wait_for_event(timeout, "wireguard_peer_event")
++        self._test.assertEqual(rv.flags, expect)
++        self._test.assertEqual(rv.peer_index, self.index)
++
+ 
+ class TestWg(VppTestCase):
+     """ Wireguard Test Case """
+@@ -1176,6 +1203,107 @@ class TestWg(VppTestCase):
+         for i in wg_ifs:
+             i.remove_vpp_config()
+ 
++    def test_wg_event(self):
++        """ Test events """
++        port = 12600
++        ESTABLISHED_FLAG = VppEnum.\
++            vl_api_wireguard_peer_flags_t.\
++            WIREGUARD_PEER_ESTABLISHED
++        DEAD_FLAG = VppEnum.\
++            vl_api_wireguard_peer_flags_t.\
++            WIREGUARD_PEER_STATUS_DEAD
++
++        # Create interfaces
++        wg0 = VppWgInterface(self,
++                             self.pg1.local_ip4,
++                             port).add_vpp_config()
++        wg1 = VppWgInterface(self,
++                             self.pg2.local_ip4,
++                             port+1).add_vpp_config()
++        wg0.admin_up()
++        wg1.admin_up()
++
++        # Check peer counter
++        self.assertEqual(len(self.vapi.wireguard_peers_dump()), 0)
++
++        self.pg_enable_capture(self.pg_interfaces)
++        self.pg_start()
++
++        # Create peers
++        NUM_PEERS = 2
++        self.pg2.generate_remote_hosts(NUM_PEERS)
++        self.pg2.configure_ipv4_neighbors()
++        self.pg1.generate_remote_hosts(NUM_PEERS)
++        self.pg1.configure_ipv4_neighbors()
++
++        peers_0 = []
++        peers_1 = []
++        routes_0 = []
++        routes_1 = []
++        for i in range(NUM_PEERS):
++            peers_0.append(VppWgPeer(self,
++                                     wg0,
++                                     self.pg1.remote_hosts[i].ip4,
++                                     port+1+i,
++                                     ["10.0.%d.4/32" % i]).add_vpp_config())
++            routes_0.append(VppIpRoute(self, "10.0.%d.4" % i, 32,
++                            [VppRoutePath(self.pg1.remote_hosts[i].ip4,
++                                          wg0.sw_if_index)]).add_vpp_config())
++
++            peers_1.append(VppWgPeer(self,
++                                     wg1,
++                                     self.pg2.remote_hosts[i].ip4,
++                                     port+100+i,
++                                     ["10.100.%d.4/32" % i]).add_vpp_config())
++            routes_1.append(VppIpRoute(self, "10.100.%d.4" % i, 32,
++                            [VppRoutePath(self.pg2.remote_hosts[i].ip4,
++                                          wg1.sw_if_index)]).add_vpp_config())
++
++        self.assertEqual(len(self.vapi.wireguard_peers_dump()), NUM_PEERS*2)
++
++        # Want events from the first perr of wg0
++        # and from all wg1 peers
++        peers_0[0].want_events()
++        wg1.want_events()
++
++        for i in range(NUM_PEERS):
++            # send a valid handsake init for which we expect a response
++            p = peers_0[i].mk_handshake(self.pg1)
++            rx = self.send_and_expect(self.pg1, [p], self.pg1)
++            peers_0[i].consume_response(rx[0])
++            if (i == 0):
++                peers_0[0].wait_event(ESTABLISHED_FLAG)
++
++            p = peers_1[i].mk_handshake(self.pg2)
++            rx = self.send_and_expect(self.pg2, [p], self.pg2)
++            peers_1[i].consume_response(rx[0])
++
++        wg1.wait_events(
++            ESTABLISHED_FLAG,
++            [peers_1[0].index, peers_1[1].index])
++
++        # remove routes
++        for r in routes_0:
++            r.remove_vpp_config()
++        for r in routes_1:
++            r.remove_vpp_config()
++
++        # remove peers
++        for i in range(NUM_PEERS):
++            self.assertTrue(peers_0[i].query_vpp_config())
++            peers_0[i].remove_vpp_config()
++            if (i == 0):
++                peers_0[i].wait_event(0)
++                peers_0[i].wait_event(DEAD_FLAG)
++        for p in peers_1:
++            self.assertTrue(p.query_vpp_config())
++            p.remove_vpp_config()
++            p.wait_event(0)
++            p.wait_event(DEAD_FLAG)
++
++        wg0.remove_vpp_config()
++        wg1.remove_vpp_config()
++
+ 
+ class WireguardHandoffTests(TestWg):
+     """ Wireguard Tests in multi worker setup """
+@@ -1241,14 +1369,14 @@ class WireguardHandoffTests(TestWg):
+ 
+         # send packets into the tunnel, from the other worker
+         p = [(peer_1.mk_tunnel_header(self.pg1) /
+-             Wireguard(message_type=4, reserved_zero=0) /
+-             WireguardTransport(
+-                 receiver_index=peer_1.sender,
+-                 counter=ii+1,
+-                 encrypted_encapsulated_packet=peer_1.encrypt_transport(
+-                     (IP(src="10.11.3.1", dst=self.pg0.remote_ip4, ttl=20) /
+-                      UDP(sport=222, dport=223) /
+-                      Raw())))) for ii in range(255)]
++              Wireguard(message_type=4, reserved_zero=0) /
++              WireguardTransport(
++                    receiver_index=peer_1.sender,
++                    counter=ii+1,
++                    encrypted_encapsulated_packet=peer_1.encrypt_transport(
++                        (IP(src="10.11.3.1", dst=self.pg0.remote_ip4, ttl=20) /
++                         UDP(sport=222, dport=223) /
++                         Raw())))) for ii in range(255)]
+ 
+         rxs = self.send_and_expect(self.pg1, p, self.pg0, worker=1)
+ 
+diff --git a/src/plugins/wireguard/wireguard.api b/src/plugins/wireguard/wireguard.api
+index e290fc41f..1473d9ca3 100755
+--- a/src/plugins/wireguard/wireguard.api
++++ b/src/plugins/wireguard/wireguard.api
+@@ -83,6 +83,7 @@ define wireguard_interface_details
+ enum wireguard_peer_flags : u8
+ {
+   WIREGUARD_PEER_STATUS_DEAD = 0x1,
++  WIREGUARD_PEER_ESTABLISHED = 0x2,
+ };
+ 
+ /** \brief Create new peer
+@@ -107,6 +108,41 @@ typedef wireguard_peer
+   vl_api_prefix_t allowed_ips[n_allowed_ips];
+ };
+ 
++service {
++  rpc want_wireguard_peer_events returns want_wireguard_peer_events_reply
++    events wireguard_peer_event;
++};
++/** \brief Register for wireguard peer events
++    @param client_index - opaque cookie to identify the sender
++    @param context - sender context, to match reply w/ request
++    @param sw_if_index - index of the interface to dump peer info on, ~0 if on all
++    @param peer_index - index of the peer to dump info on, ~0 if on all
++    @param enable_disable - 1 => register for events, 0 => cancel registration
++    @param pid - sender's pid
++*/
++autoreply define want_wireguard_peer_events
++{
++  u32 client_index;
++  u32 context;
++  vl_api_interface_index_t sw_if_index [default=0xFFFFFFFF];
++  u32 peer_index [default=0xFFFFFFFF];
++  u32 enable_disable;
++  u32 pid;
++};
++/** \brief Interface Event generated by want_wireguard_peer_events
++    @param client_index - opaque cookie to identify the sender
++    @param pid - client pid registered to receive notification
++    @param peer_index - index of the peer for this event
++    @param deleted - interface was deleted
++*/
++define wireguard_peer_event
++{
++  u32 client_index;
++  u32 pid;
++  u32 peer_index;
++  vl_api_wireguard_peer_flags_t flags;
++};
++
+ /** \brief Create new peer
+     @param client_index - opaque cookie to identify the sender
+     @param context - sender context, to match reply w/ request
+@@ -140,10 +176,12 @@ autoreply define wireguard_peer_remove
+ /** \brief Dump all peers
+     @param client_index - opaque cookie to identify the sender
+     @param context - sender context, to match reply w/ request
++    @param peer_index - peer index to be dumped.  If 0xFFFFFFFF dumps all peers
+ */
+ define wireguard_peers_dump {
+   u32 client_index;
+   u32 context;
++  u32 peer_index [default=0xFFFFFFFF];
+ };
+ 
+ /** \brief Dump peers response
+diff --git a/src/plugins/wireguard/wireguard_api.c b/src/plugins/wireguard/wireguard_api.c
+index 5dd4f86f9..8a43f0f22 100644
+--- a/src/plugins/wireguard/wireguard_api.c
++++ b/src/plugins/wireguard/wireguard_api.c
+@@ -27,9 +27,9 @@
+ #include <wireguard/wireguard_key.h>
+ #include <wireguard/wireguard.h>
+ #include <wireguard/wireguard_if.h>
+-#include <wireguard/wireguard_peer.h>
+ 
+ #define REPLY_MSG_ID_BASE wmp->msg_id_base
++#include <wireguard/wireguard_peer.h>
+ #include <vlibapi/api_helper_macros.h>
+ 
+ static void
+@@ -50,7 +50,8 @@ static void
+   if (mp->generate_key)
+     curve25519_gen_secret (private_key);
+   else
+-    clib_memcpy (private_key, mp->interface.private_key, NOISE_PUBLIC_KEY_LEN);
++    clib_memcpy (private_key, mp->interface.private_key,
++		 NOISE_PUBLIC_KEY_LEN);
+ 
+   rv = wg_if_create (ntohl (mp->interface.user_instance), private_key,
+ 		     ntohs (mp->interface.port), &src, &sw_if_index);
+@@ -204,7 +205,7 @@ vl_api_wireguard_peer_remove_t_handler (vl_api_wireguard_peer_remove_t * mp)
+ }
+ 
+ static walk_rc_t
+-send_wg_peers_details (index_t peeri, void *data)
++wg_api_send_peers_details (index_t peeri, void *data)
+ {
+   vl_api_wireguard_peers_details_t *rmp;
+   wg_deatils_walk_t *ctx = data;
+@@ -212,7 +213,11 @@ send_wg_peers_details (index_t peeri, void *data)
+   u8 n_allowed_ips;
+   size_t ss;
+ 
++  if (pool_is_free_index (wg_peer_pool, peeri))
++    return (WALK_CONTINUE);
++
+   peer = wg_peer_get (peeri);
++
+   n_allowed_ips = vec_len (peer->allowed_ips);
+ 
+   ss = (sizeof (*rmp) + (n_allowed_ips * sizeof (rmp->peer.allowed_ips[0])));
+@@ -222,8 +227,7 @@ send_wg_peers_details (index_t peeri, void *data)
+   rmp->_vl_msg_id = htons (VL_API_WIREGUARD_PEERS_DETAILS +
+ 			   wg_main.msg_id_base);
+ 
+-  if (peer->is_dead)
+-    rmp->peer.flags = WIREGUARD_PEER_STATUS_DEAD;
++  rmp->peer.flags = peer->flags;
+   clib_memcpy (rmp->peer.public_key,
+ 	       peer->remote.r_public, NOISE_PUBLIC_KEY_LEN);
+ 
+@@ -260,7 +264,116 @@ vl_api_wireguard_peers_dump_t_handler (vl_api_wireguard_peers_dump_t * mp)
+     .context = mp->context,
+   };
+ 
+-  wg_peer_walk (send_wg_peers_details, &ctx);
++  if (mp->peer_index == ~0)
++    wg_peer_walk (wg_api_send_peers_details, &ctx);
++  else
++    wg_api_send_peers_details (mp->peer_index, &ctx);
++}
++
++static vpe_client_registration_t *
++wg_api_client_lookup (wg_peer_t * peer, u32 client_index)
++{
++  uword *p;
++  vpe_client_registration_t *api_client = NULL;
++
++  p = hash_get (peer->api_client_by_client_index, client_index);
++  if (p)
++    api_client = vec_elt_at_index (peer->api_clients, p[0]);
++
++  return api_client;
++}
++
++static walk_rc_t
++wg_api_update_peer_api_client (index_t peeri, void *data)
++{
++  if (pool_is_free_index (wg_peer_pool, peeri))
++    return (WALK_CONTINUE);
++
++  vl_api_want_wireguard_peer_events_t *mp = data;
++  wg_peer_t *peer = wg_peer_get (peeri);
++
++  if (ntohl (mp->sw_if_index) != ~0
++      && ntohl (mp->sw_if_index) != peer->wg_sw_if_index)
++    {
++      return (WALK_CONTINUE);
++    }
++
++  vpe_client_registration_t *api_client;
++
++  api_client = wg_api_client_lookup (peer, mp->client_index);
++
++  if (api_client)
++    {
++      if (mp->enable_disable)
++	{
++	  return (WALK_CONTINUE);
++	}
++      hash_unset (peer->api_client_by_client_index, api_client->client_index);
++      pool_put (peer->api_clients, api_client);
++    }
++  if (mp->enable_disable)
++    {
++      pool_get (peer->api_clients, api_client);
++      clib_memset (api_client, 0, sizeof (vpe_client_registration_t));
++      api_client->client_index = mp->client_index;
++      api_client->client_pid = mp->pid;
++      hash_set (peer->api_client_by_client_index,
++		mp->client_index, api_client - peer->api_clients);
++    }
++
++  return (WALK_CONTINUE);
++}
++
++static void
++  vl_api_want_wireguard_peer_events_t_handler
++  (vl_api_want_wireguard_peer_events_t * mp)
++{
++  wg_main_t *wmp = &wg_main;
++  vl_api_want_wireguard_peer_events_reply_t *rmp;
++  int rv = 0;
++
++  wg_feature_init (wmp);
++
++  if (mp->peer_index == ~0)
++    wg_peer_walk (wg_api_update_peer_api_client, mp);
++  else
++    wg_api_update_peer_api_client (ntohl (mp->peer_index), mp);
++
++    /* *INDENT-OFF* */
++    REPLY_MACRO(VL_API_WANT_WIREGUARD_PEER_EVENTS_REPLY);
++    /* *INDENT-ON* */
++}
++
++void
++wg_api_send_peer_event (vl_api_registration_t * rp,
++			index_t peer_index, wg_peer_flags flags)
++{
++  vl_api_wireguard_peer_event_t *mp = vl_msg_api_alloc (sizeof (*mp));
++  clib_memset (mp, 0, sizeof (*mp));
++
++  mp->_vl_msg_id = htons (VL_API_WIREGUARD_PEER_EVENT + wg_main.msg_id_base);
++  mp->peer_index = htonl (peer_index);
++  mp->flags = flags;
++
++  vl_api_send_msg (rp, (u8 *) mp);
++}
++
++void
++wg_api_peer_event (index_t peeri, wg_peer_flags flags)
++{
++  wg_peer_t *peer = wg_peer_get (peeri);
++  vpe_client_registration_t *api_client;
++  vl_api_registration_t *rp;
++
++  /* *INDENT-OFF* */
++  pool_foreach (api_client, peer->api_clients,
++    ({
++      rp = vl_api_client_index_to_registration (api_client->client_index);
++      if (rp){
++        wg_api_send_peer_event (rp, peeri, flags);
++         }
++    }));
++  /* *INDENT-ON* */
+ }
+ 
+ /* set tup the API message handling tables */
+diff --git a/src/plugins/wireguard/wireguard_input.c b/src/plugins/wireguard/wireguard_input.c
+index 599ae6b7d..9374c7240 100644
+--- a/src/plugins/wireguard/wireguard_input.c
++++ b/src/plugins/wireguard/wireguard_input.c
+@@ -111,13 +111,13 @@ typedef enum
+ /* } */
+ 
+ static u8
+-is_ip4_header (u8 *data)
++is_ip4_header (u8 * data)
+ {
+   return (data[0] >> 4) == 0x4;
+ }
+ 
+ static wg_input_error_t
+-wg_handshake_process (vlib_main_t *vm, wg_main_t *wmp, vlib_buffer_t *b,
++wg_handshake_process (vlib_main_t * vm, wg_main_t * wmp, vlib_buffer_t * b,
+ 		      u32 node_idx, u8 is_ip4)
+ {
+   ASSERT (vm->thread_index == 0);
+@@ -181,21 +181,22 @@ wg_handshake_process (vlib_main_t *vm, wg_main_t *wmp, vlib_buffer_t *b,
+     return WG_INPUT_ERROR_INTERFACE;
+ 
+   vec_foreach (ii, wg_ifs)
+-    {
+-      wg_if = wg_if_get (*ii);
+-      if (NULL == wg_if)
++  {
++    wg_if = wg_if_get (*ii);
++    if (NULL == wg_if)
++      continue;
++
++    mac_state =
++      cookie_checker_validate_macs (vm, &wg_if->cookie_checker, macs,
++				    current_b_data, len, under_load, &src_ip,
++				    udp_src_port);
++    if (mac_state == INVALID_MAC)
++      {
++	wg_if = NULL;
+ 	continue;
+-
+-      mac_state = cookie_checker_validate_macs (
+-	vm, &wg_if->cookie_checker, macs, current_b_data, len, under_load,
+-	&src_ip, udp_src_port);
+-      if (mac_state == INVALID_MAC)
+-	{
+-	  wg_if = NULL;
+-	  continue;
+-	}
+-      break;
+-    }
++      }
++    break;
++  }
+ 
+   if (NULL == wg_if)
+     return WG_INPUT_ERROR_HANDSHAKE_MAC;
+@@ -237,6 +238,10 @@ wg_handshake_process (vlib_main_t *vm, wg_main_t *wmp, vlib_buffer_t *b,
+ 	    vlib_node_increment_counter (vm, node_idx,
+ 					 WG_INPUT_ERROR_HANDSHAKE_SEND, 1);
+ 	  }
++	else
++	  {
++	    wg_peer_update_flags (rp->r_peer_idx, WG_PEER_ESTABLISHED, true);
++	  }
+ 	break;
+       }
+     case MESSAGE_HANDSHAKE_RESPONSE:
+@@ -248,7 +253,7 @@ wg_handshake_process (vlib_main_t *vm, wg_main_t *wmp, vlib_buffer_t *b,
+ 	if (PREDICT_TRUE (entry != NULL))
+ 	  {
+ 	    peer = wg_peer_get (*entry);
+-	    if (peer->is_dead)
++	    if (wg_peer_is_dead (peer))
+ 	      return WG_INPUT_ERROR_PEER;
+ 	  }
+ 	else
+@@ -275,7 +280,12 @@ wg_handshake_process (vlib_main_t *vm, wg_main_t *wmp, vlib_buffer_t *b,
+ 	    if (PREDICT_FALSE (!wg_send_keepalive (vm, peer)))
+ 	      {
+ 		vlib_node_increment_counter (vm, node_idx,
+-					     WG_INPUT_ERROR_KEEPALIVE_SEND, 1);
++					     WG_INPUT_ERROR_KEEPALIVE_SEND,
++					     1);
++	      }
++	    else
++	      {
++		wg_peer_update_flags (*entry, WG_PEER_ESTABLISHED, true);
+ 	      }
+ 	  }
+ 	break;
+@@ -290,8 +300,8 @@ wg_handshake_process (vlib_main_t *vm, wg_main_t *wmp, vlib_buffer_t *b,
+ }
+ 
+ always_inline uword
+-wg_input_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+-		 vlib_frame_t *frame, u8 is_ip4)
++wg_input_inline (vlib_main_t * vm, vlib_node_runtime_t * node,
++		 vlib_frame_t * frame, u8 is_ip4)
+ {
+   message_type_t header_type;
+   u32 n_left_from;
+@@ -379,6 +389,7 @@ wg_input_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	    }
+ 	  else if (PREDICT_FALSE (state_cr == SC_FAILED))
+ 	    {
++	      wg_peer_update_flags (*peer_idx, WG_PEER_ESTABLISHED, false);
+ 	      next[0] = WG_INPUT_NEXT_ERROR;
+ 	      b[0]->error = node->errors[WG_INPUT_ERROR_DECRYPTION];
+ 	      goto out;
+@@ -404,15 +415,17 @@ wg_input_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	  u8 is_ip4_inner = is_ip4_header (vlib_buffer_get_current (b[0]));
+ 	  if (is_ip4_inner)
+ 	    {
+-	      ip46_address_set_ip4 (
+-		&src_ip, &((ip4_header_t *) vlib_buffer_get_current (b[0]))
+-			    ->src_address);
++	      ip46_address_set_ip4 (&src_ip,
++				    &((ip4_header_t *)
++				      vlib_buffer_get_current (b
++							       [0]))->src_address);
+ 	    }
+ 	  else
+ 	    {
+-	      ip46_address_set_ip6 (
+-		&src_ip, &((ip6_header_t *) vlib_buffer_get_current (b[0]))
+-			    ->src_address);
++	      ip46_address_set_ip6 (&src_ip,
++				    &((ip6_header_t *)
++				      vlib_buffer_get_current (b
++							       [0]))->src_address);
+ 	    }
+ 
+ 	  const fib_prefix_t *allowed_ip;
+@@ -436,7 +449,7 @@ wg_input_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	    {
+ 	      vnet_buffer (b[0])->sw_if_index[VLIB_RX] = peer->wg_sw_if_index;
+ 	      next[0] = is_ip4_inner ? WG_INPUT_NEXT_IP4_INPUT :
+-				       WG_INPUT_NEXT_IP6_INPUT;
++		WG_INPUT_NEXT_IP6_INPUT;
+ 	    }
+ 	}
+       else
+@@ -480,13 +493,13 @@ wg_input_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ }
+ 
+ VLIB_NODE_FN (wg4_input_node)
+-(vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame)
++  (vlib_main_t * vm, vlib_node_runtime_t * node, vlib_frame_t * frame)
+ {
+   return wg_input_inline (vm, node, frame, /* is_ip4 */ 1);
+ }
+ 
+ VLIB_NODE_FN (wg6_input_node)
+-(vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame)
++  (vlib_main_t * vm, vlib_node_runtime_t * node, vlib_frame_t * frame)
+ {
+   return wg_input_inline (vm, node, frame, /* is_ip4 */ 0);
+ }
+diff --git a/src/plugins/wireguard/wireguard_output_tun.c b/src/plugins/wireguard/wireguard_output_tun.c
+index a9d500f3b..ba61b3f1d 100644
+--- a/src/plugins/wireguard/wireguard_output_tun.c
++++ b/src/plugins/wireguard/wireguard_output_tun.c
+@@ -54,7 +54,8 @@ typedef struct
+   index_t peer;
+   u8 header[sizeof (ip6_udp_header_t)];
+   u8 is_ip4;
+-} wg_output_tun_trace_t;
++}
++wg_output_tun_trace_t;
+ 
+ u8 *
+ format_ip4_udp_header (u8 * s, va_list * args)
+@@ -67,7 +68,7 @@ format_ip4_udp_header (u8 * s, va_list * args)
+ }
+ 
+ u8 *
+-format_ip6_udp_header (u8 *s, va_list *args)
++format_ip6_udp_header (u8 * s, va_list * args)
+ {
+   ip6_udp_header_t *hdr6 = va_arg (*args, ip6_udp_header_t *);
+ 
+@@ -89,14 +90,14 @@ format_wg_output_tun_trace (u8 * s, va_list * args)
+   s = format (s, "  Encrypted packet: ");
+ 
+   s = t->is_ip4 ? format (s, "%U", format_ip4_udp_header, t->header) :
+-		  format (s, "%U", format_ip6_udp_header, t->header);
++    format (s, "%U", format_ip6_udp_header, t->header);
+   return s;
+ }
+ 
+ /* is_ip4 - inner header flag */
+ always_inline uword
+-wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+-		      vlib_frame_t *frame, u8 is_ip4)
++wg_output_tun_inline (vlib_main_t * vm, vlib_node_runtime_t * node,
++		      vlib_frame_t * frame, u8 is_ip4)
+ {
+   u32 n_left_from;
+   u32 *from;
+@@ -128,7 +129,7 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	wg_peer_get_by_adj_index (vnet_buffer (b[0])->ip.adj_index[VLIB_TX]);
+       peer = wg_peer_get (peeri);
+ 
+-      if (!peer || peer->is_dead)
++      if (wg_peer_is_dead (peer))
+ 	{
+ 	  b[0]->error = node->errors[WG_OUTPUT_ERROR_PEER];
+ 	  goto out;
+@@ -170,10 +171,9 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 
+       plain_data = vlib_buffer_get_current (b[0]) + offset;
+       plain_data_len =
+-	is_ip4 ? clib_net_to_host_u16 (((ip4_header_t *) plain_data)->length) :
+-		 clib_net_to_host_u16 (
+-		   ((ip6_header_t *) plain_data)->payload_length) +
+-		   sizeof (ip6_header_t);
++	is_ip4 ? clib_net_to_host_u16 (((ip4_header_t *) plain_data)->length)
++	: clib_net_to_host_u16 (((ip6_header_t *) plain_data)->payload_length)
++	+ sizeof (ip6_header_t);
+ 
+       size_t encrypted_packet_len = message_data_len (plain_data_len);
+ 
+@@ -193,10 +193,12 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	(message_data_t *) wmp->per_thread_data[thread_index].data;
+ 
+       enum noise_state_crypt state;
+-      state = noise_remote_encrypt (
+-	vm, &peer->remote, &encrypted_packet->receiver_index,
+-	&encrypted_packet->counter, plain_data, plain_data_len,
+-	encrypted_packet->encrypted_data);
++      state =
++	noise_remote_encrypt (vm, &peer->remote,
++			      &encrypted_packet->receiver_index,
++			      &encrypted_packet->counter, plain_data,
++			      plain_data_len,
++			      encrypted_packet->encrypted_data);
+ 
+       if (PREDICT_FALSE (state == SC_KEEP_KEY_FRESH))
+ 	{
+@@ -206,6 +208,7 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	{
+ 	  //TODO: Maybe wrong
+ 	  wg_send_handshake_from_mt (peeri, false);
++	  wg_peer_update_flags (peeri, WG_PEER_ESTABLISHED, false);
+ 	  goto out;
+ 	}
+ 
+@@ -221,8 +224,9 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 						       sizeof (udp_header_t));
+ 	  b[0]->current_length =
+ 	    (encrypted_packet_len + sizeof (ip4_udp_header_t));
+-	  ip4_header_set_len_w_chksum (
+-	    &hdr4_out->ip4, clib_host_to_net_u16 (b[0]->current_length));
++	  ip4_header_set_len_w_chksum (&hdr4_out->ip4,
++				       clib_host_to_net_u16 (b
++							     [0]->current_length));
+ 	}
+       else
+ 	{
+@@ -264,13 +268,13 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+ }
+ 
+ VLIB_NODE_FN (wg4_output_tun_node)
+-(vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame)
++  (vlib_main_t * vm, vlib_node_runtime_t * node, vlib_frame_t * frame)
+ {
+   return wg_output_tun_inline (vm, node, frame, /* is_ip4 */ 1);
+ }
+ 
+ VLIB_NODE_FN (wg6_output_tun_node)
+-(vlib_main_t *vm, vlib_node_runtime_t *node, vlib_frame_t *frame)
++  (vlib_main_t * vm, vlib_node_runtime_t * node, vlib_frame_t * frame)
+ {
+   return wg_output_tun_inline (vm, node, frame, /* is_ip4 */ 0);
+ }
+diff --git a/src/plugins/wireguard/wireguard_peer.c b/src/plugins/wireguard/wireguard_peer.c
+index 94701820f..c6bc06c48 100755
+--- a/src/plugins/wireguard/wireguard_peer.c
++++ b/src/plugins/wireguard/wireguard_peer.c
+@@ -36,7 +36,7 @@ wg_peer_endpoint_reset (wg_peer_endpoint_t * ep)
+ }
+ 
+ static void
+-wg_peer_endpoint_init (wg_peer_endpoint_t *ep, const ip46_address_t *addr,
++wg_peer_endpoint_init (wg_peer_endpoint_t * ep, const ip46_address_t * addr,
+ 		       u16 port)
+ {
+   ip46_address_copy (&ep->addr, addr);
+@@ -46,7 +46,10 @@ wg_peer_endpoint_init (wg_peer_endpoint_t *ep, const ip46_address_t *addr,
+ static void
+ wg_peer_clear (vlib_main_t * vm, wg_peer_t * peer)
+ {
++  index_t perri = peer - wg_peer_pool;
+   wg_timers_stop (peer);
++  wg_peer_update_flags (perri, WG_PEER_ESTABLISHED, false);
++  wg_peer_update_flags (perri, WG_PEER_STATUS_DEAD, true);
+   for (int i = 0; i < WG_N_TIMERS; i++)
+     {
+       peer->timers[i] = ~0;
+@@ -62,12 +65,12 @@ wg_peer_clear (vlib_main_t * vm, wg_peer_t * peer)
+ 
+   adj_index_t *adj_index;
+   vec_foreach (adj_index, peer->adj_indices)
+-    {
+-      if (INDEX_INVALID != *adj_index)
+-	{
+-	  wg_peer_by_adj_index[*adj_index] = INDEX_INVALID;
+-	}
+-    }
++  {
++    if (INDEX_INVALID != *adj_index)
++      {
++	wg_peer_by_adj_index[*adj_index] = INDEX_INVALID;
++      }
++  }
+   peer->input_thread_index = ~0;
+   peer->output_thread_index = ~0;
+   peer->timer_wheel = 0;
+@@ -80,7 +83,6 @@ wg_peer_clear (vlib_main_t * vm, wg_peer_t * peer)
+   peer->new_handshake_interval_tick = 0;
+   peer->rehandshake_interval_tick = 0;
+   peer->timer_need_another_keepalive = false;
+-  peer->is_dead = true;
+   vec_free (peer->allowed_ips);
+   vec_free (peer->adj_indices);
+ }
+@@ -88,11 +90,13 @@ wg_peer_clear (vlib_main_t * vm, wg_peer_t * peer)
+ static void
+ wg_peer_init (vlib_main_t * vm, wg_peer_t * peer)
+ {
++  peer->api_client_by_client_index = hash_create (0, sizeof (u32));
++  peer->api_clients = NULL;
+   wg_peer_clear (vm, peer);
+ }
+ 
+ static u8 *
+-wg_peer_build_rewrite (const wg_peer_t *peer, u8 is_ip4)
++wg_peer_build_rewrite (const wg_peer_t * peer, u8 is_ip4)
+ {
+   u8 *rewrite = NULL;
+   if (is_ip4)
+@@ -135,7 +139,7 @@ wg_peer_build_rewrite (const wg_peer_t *peer, u8 is_ip4)
+ }
+ 
+ static void
+-wg_peer_adj_stack (wg_peer_t *peer, adj_index_t ai)
++wg_peer_adj_stack (wg_peer_t * peer, adj_index_t ai)
+ {
+   ip_adjacency_t *adj;
+   u32 sw_if_index;
+@@ -183,9 +187,9 @@ wg_peer_if_admin_state_change (index_t peeri, void *data)
+   adj_index_t *adj_index;
+   peer = wg_peer_get (peeri);
+   vec_foreach (adj_index, peer->adj_indices)
+-    {
+-      wg_peer_adj_stack (peer, *adj_index);
+-    }
++  {
++    wg_peer_adj_stack (peer, *adj_index);
++  }
+   return (WALK_CONTINUE);
+ }
+ 
+@@ -201,23 +205,22 @@ wg_peer_if_adj_change (index_t peeri, void *data)
+ 
+   peer = wg_peer_get (peeri);
+   vec_foreach (allowed_ip, peer->allowed_ips)
+-    {
+-      if (fib_prefix_is_cover_addr_46 (allowed_ip,
+-				       &adj->sub_type.nbr.next_hop))
+-	{
+-	  vec_add1 (peer->adj_indices, *adj_index);
+-	  vec_validate_init_empty (wg_peer_by_adj_index, *adj_index,
+-				   INDEX_INVALID);
+-	  wg_peer_by_adj_index[*adj_index] = peer - wg_peer_pool;
+-
+-	  adj_nbr_midchain_update_rewrite (*adj_index, NULL, NULL,
+-					   ADJ_FLAG_MIDCHAIN_IP_STACK,
+-					   vec_dup (peer->rewrite));
+-
+-	  wg_peer_adj_stack (peer, *adj_index);
+-	  return (WALK_STOP);
+-	}
+-    }
++  {
++    if (fib_prefix_is_cover_addr_46 (allowed_ip, &adj->sub_type.nbr.next_hop))
++      {
++	vec_add1 (peer->adj_indices, *adj_index);
++	vec_validate_init_empty (wg_peer_by_adj_index, *adj_index,
++				 INDEX_INVALID);
++	wg_peer_by_adj_index[*adj_index] = peer - wg_peer_pool;
++
++	adj_nbr_midchain_update_rewrite (*adj_index, NULL, NULL,
++					 ADJ_FLAG_MIDCHAIN_IP_STACK,
++					 vec_dup (peer->rewrite));
++
++	wg_peer_adj_stack (peer, *adj_index);
++	return (WALK_STOP);
++      }
++  }
+ 
+   return (WALK_CONTINUE);
+ }
+@@ -226,8 +229,7 @@ adj_walk_rc_t
+ wg_peer_adj_walk (adj_index_t ai, void *data)
+ {
+   return wg_peer_if_adj_change ((*(index_t *) (data)), &ai) == WALK_CONTINUE ?
+-	   ADJ_WALK_RC_CONTINUE :
+-	   ADJ_WALK_RC_STOP;
++    ADJ_WALK_RC_CONTINUE : ADJ_WALK_RC_STOP;
+ }
+ 
+ walk_rc_t
+@@ -238,11 +240,12 @@ wg_peer_if_delete (index_t peeri, void *data)
+ }
+ 
+ static int
+-wg_peer_fill (vlib_main_t *vm, wg_peer_t *peer, u32 table_id,
+-	      const ip46_address_t *dst, u16 port,
++wg_peer_fill (vlib_main_t * vm, wg_peer_t * peer, u32 table_id,
++	      const ip46_address_t * dst, u16 port,
+ 	      u16 persistent_keepalive_interval,
+-	      const fib_prefix_t *allowed_ips, u32 wg_sw_if_index)
++	      const fib_prefix_t * allowed_ips, u32 wg_sw_if_index)
+ {
++  index_t perri = peer - wg_peer_pool;
+   wg_peer_endpoint_init (&peer->dst, dst, port);
+ 
+   peer->table_id = table_id;
+@@ -250,7 +253,7 @@ wg_peer_fill (vlib_main_t *vm, wg_peer_t *peer, u32 table_id,
+   peer->timer_wheel = &wg_main.timer_wheel;
+   peer->persistent_keepalive_interval = persistent_keepalive_interval;
+   peer->last_sent_handshake = vlib_time_now (vm) - (REKEY_TIMEOUT + 1);
+-  peer->is_dead = false;
++  wg_peer_update_flags (perri, WG_PEER_STATUS_DEAD, false);
+ 
+   const wg_if_t *wgi = wg_if_get (wg_if_find_by_sw_if_index (wg_sw_if_index));
+ 
+@@ -270,7 +273,6 @@ wg_peer_fill (vlib_main_t *vm, wg_peer_t *peer, u32 table_id,
+     peer->allowed_ips[ii] = allowed_ips[ii];
+   }
+ 
+-  index_t perri = peer - wg_peer_pool;
+   fib_protocol_t proto;
+   FOR_EACH_FIB_IP_PROTOCOL (proto)
+   {
+@@ -279,11 +281,25 @@ wg_peer_fill (vlib_main_t *vm, wg_peer_t *peer, u32 table_id,
+   return (0);
+ }
+ 
++void
++wg_peer_update_flags (index_t peeri, wg_peer_flags flag, bool add_del)
++{
++  wg_peer_t *peer = wg_peer_get (peeri);
++  if ((add_del && (peer->flags & flag)) ||
++      (!add_del && !(peer->flags & flag)))
++    {
++      return;
++    }
++
++  peer->flags ^= flag;
++  wg_api_peer_event (peeri, peer->flags);
++}
++
+ int
+ wg_peer_add (u32 tun_sw_if_index, const u8 public_key[NOISE_PUBLIC_KEY_LEN],
+-	     u32 table_id, const ip46_address_t *endpoint,
+-	     const fib_prefix_t *allowed_ips, u16 port,
+-	     u16 persistent_keepalive, u32 *peer_index)
++	     u32 table_id, const ip46_address_t * endpoint,
++	     const fib_prefix_t * allowed_ips, u16 port,
++	     u16 persistent_keepalive, u32 * peer_index)
+ {
+   wg_if_t *wg_if;
+   wg_peer_t *peer;
+@@ -329,6 +345,7 @@ wg_peer_add (u32 tun_sw_if_index, const u8 public_key[NOISE_PUBLIC_KEY_LEN],
+ 		     wg_if->local_idx);
+   cookie_maker_init (&peer->cookie_maker, public_key);
+ 
++  wg_send_handshake (vm, peer, false);
+   if (peer->persistent_keepalive_interval != 0)
+     {
+       wg_send_keepalive (vm, peer);
+@@ -400,15 +417,19 @@ format_wg_peer (u8 * s, va_list * va)
+   peer = wg_peer_get (peeri);
+   key_to_base64 (peer->remote.r_public, NOISE_PUBLIC_KEY_LEN, key);
+ 
+-  s = format (s, "[%d] endpoint:[%U->%U] %U keep-alive:%d", peeri,
+-	      format_wg_peer_endpoint, &peer->src, format_wg_peer_endpoint,
+-	      &peer->dst, format_vnet_sw_if_index_name, vnet_get_main (),
+-	      peer->wg_sw_if_index, peer->persistent_keepalive_interval);
++  s =
++    format (s,
++	    "[%d] endpoint:[%U->%U] %U keep-alive:%d flags: %d, api-clients count: %d",
++	    peeri, format_wg_peer_endpoint, &peer->src,
++	    format_wg_peer_endpoint, &peer->dst, format_vnet_sw_if_index_name,
++	    vnet_get_main (), peer->wg_sw_if_index,
++	    peer->persistent_keepalive_interval, peer->flags,
++	    pool_elts (peer->api_clients));
+   s = format (s, "\n  adj:");
+   vec_foreach (adj_index, peer->adj_indices)
+-    {
+-      s = format (s, " %d", adj_index);
+-    }
++  {
++    s = format (s, " %d", *adj_index);
++  }
+   s = format (s, "\n  key:%=s %U", key, format_hex_bytes,
+ 	      peer->remote.r_public, NOISE_PUBLIC_KEY_LEN);
+   s = format (s, "\n  allowed-ips:");
+diff --git a/src/plugins/wireguard/wireguard_peer.h b/src/plugins/wireguard/wireguard_peer.h
+index c719ac195..322571c90 100644
+--- a/src/plugins/wireguard/wireguard_peer.h
++++ b/src/plugins/wireguard/wireguard_peer.h
+@@ -17,6 +17,8 @@
+ #ifndef __included_wg_peer_h__
+ #define __included_wg_peer_h__
+ 
++#include <vlibapi/api_helper_macros.h>
++
+ #include <vnet/ip/ip.h>
+ 
+ #include <wireguard/wireguard_cookie.h>
+@@ -38,7 +40,7 @@ typedef struct ip6_udp_header_t_
+ } __clib_packed ip6_udp_header_t;
+ 
+ u8 *format_ip4_udp_header (u8 * s, va_list * va);
+-u8 *format_ip6_udp_header (u8 *s, va_list *va);
++u8 *format_ip6_udp_header (u8 * s, va_list * va);
+ 
+ typedef struct wg_peer_endpoint_t_
+ {
+@@ -46,6 +48,12 @@ typedef struct wg_peer_endpoint_t_
+   u16 port;
+ } wg_peer_endpoint_t;
+ 
++typedef enum
++{
++  WG_PEER_STATUS_DEAD = 0x1,
++  WG_PEER_ESTABLISHED = 0x2,
++} wg_peer_flags;
++
+ typedef struct wg_peer
+ {
+   noise_remote_t remote;
+@@ -69,6 +77,11 @@ typedef struct wg_peer
+   /* The WG interface this peer is attached to */
+   u32 wg_sw_if_index;
+ 
++  /* API client registered for events */
++  vpe_client_registration_t *api_clients;
++  uword *api_client_by_client_index;
++  wg_peer_flags flags;
++
+   /* Timers */
+   tw_timer_wheel_16t_2w_512sl_t *timer_wheel;
+   u32 timers[WG_N_TIMERS];
+@@ -88,8 +101,6 @@ typedef struct wg_peer
+   u32 rehandshake_interval_tick;
+ 
+   bool timer_need_another_keepalive;
+-
+-  bool is_dead;
+ } wg_peer_t;
+ 
+ typedef struct wg_peer_table_bind_ctx_t_
+@@ -117,6 +128,15 @@ walk_rc_t wg_peer_if_delete (index_t peeri, void *data);
+ walk_rc_t wg_peer_if_adj_change (index_t peeri, void *data);
+ adj_walk_rc_t wg_peer_adj_walk (adj_index_t ai, void *data);
+ 
++void wg_api_peer_event (index_t peeri, wg_peer_flags flags);
++void wg_peer_update_flags (index_t peeri, wg_peer_flags flag, bool add_del);
++
++static inline bool
++wg_peer_is_dead (wg_peer_t * peer)
++{
++  return peer && peer->flags & WG_PEER_STATUS_DEAD;
++}
++
+ /*
+  * Expoed for the data-plane
+  */
+@@ -148,7 +168,8 @@ wg_peer_assign_thread (u32 thread_id)
+ }
+ 
+ static_always_inline bool
+-fib_prefix_is_cover_addr_46 (const fib_prefix_t *p1, const ip46_address_t *ip)
++fib_prefix_is_cover_addr_46 (const fib_prefix_t * p1,
++			     const ip46_address_t * ip)
+ {
+   switch (p1->fp_proto)
+     {
+diff --git a/src/plugins/wireguard/wireguard_send.c b/src/plugins/wireguard/wireguard_send.c
+index 2c2a36073..fb60031bd 100644
+--- a/src/plugins/wireguard/wireguard_send.c
++++ b/src/plugins/wireguard/wireguard_send.c
+@@ -24,7 +24,7 @@
+ #include <wireguard/wireguard_send.h>
+ 
+ static int
+-ip46_enqueue_packet (vlib_main_t *vm, u32 bi0, int is_ip4)
++ip46_enqueue_packet (vlib_main_t * vm, u32 bi0, int is_ip4)
+ {
+   vlib_frame_t *f = 0;
+   u32 lookup_node_index =
+@@ -43,7 +43,8 @@ ip46_enqueue_packet (vlib_main_t *vm, u32 bi0, int is_ip4)
+ }
+ 
+ static void
+-wg_buffer_prepend_rewrite (vlib_buffer_t *b0, const wg_peer_t *peer, u8 is_ip4)
++wg_buffer_prepend_rewrite (vlib_buffer_t * b0, const wg_peer_t * peer,
++			   u8 is_ip4)
+ {
+   if (is_ip4)
+     {
+@@ -76,8 +77,8 @@ wg_buffer_prepend_rewrite (vlib_buffer_t *b0, const wg_peer_t *peer, u8 is_ip4)
+ }
+ 
+ static bool
+-wg_create_buffer (vlib_main_t *vm, const wg_peer_t *peer, const u8 *packet,
+-		  u32 packet_len, u32 *bi, u8 is_ip4)
++wg_create_buffer (vlib_main_t * vm, const wg_peer_t * peer, const u8 * packet,
++		  u32 packet_len, u32 * bi, u8 is_ip4)
+ {
+   u32 n_buf0 = 0;
+   vlib_buffer_t *b0;
+@@ -109,7 +110,7 @@ wg_send_handshake (vlib_main_t * vm, wg_peer_t * peer, bool is_retry)
+     peer->timer_handshake_attempts = 0;
+ 
+   if (!wg_birthdate_has_expired (peer->last_sent_handshake,
+-				 REKEY_TIMEOUT) || peer->is_dead)
++				 REKEY_TIMEOUT) || wg_peer_is_dead (peer))
+     return true;
+ 
+   if (noise_create_initiation (vm,
+@@ -133,7 +134,7 @@ wg_send_handshake (vlib_main_t * vm, wg_peer_t * peer, bool is_retry)
+ 
+   u8 is_ip4 = ip46_address_is_ip4 (&peer->dst.addr);
+   u32 bi0 = 0;
+-  if (!wg_create_buffer (vm, peer, (u8 *) &packet, sizeof (packet), &bi0,
++  if (!wg_create_buffer (vm, peer, (u8 *) & packet, sizeof (packet), &bi0,
+ 			 is_ip4))
+     return false;
+ 
+@@ -201,6 +202,7 @@ wg_send_keepalive (vlib_main_t * vm, wg_peer_t * peer)
+     }
+   else if (PREDICT_FALSE (state == SC_FAILED))
+     {
++      wg_peer_update_flags (peer - wg_peer_pool, WG_PEER_ESTABLISHED, false);
+       ret = false;
+       goto out;
+     }
+@@ -249,18 +251,16 @@ wg_send_handshake_response (vlib_main_t * vm, wg_peer_t * peer)
+ 
+ 	  u32 bi0 = 0;
+ 	  u8 is_ip4 = ip46_address_is_ip4 (&peer->dst.addr);
+-	  if (!wg_create_buffer (vm, peer, (u8 *) &packet, sizeof (packet),
++	  if (!wg_create_buffer (vm, peer, (u8 *) & packet, sizeof (packet),
+ 				 &bi0, is_ip4))
+ 	    return false;
+ 
+ 	  ip46_enqueue_packet (vm, bi0, is_ip4);
++	  return true;
+ 	}
+-      else
+-	return false;
++      return false;
+     }
+-  else
+-    return false;
+-  return true;
++  return false;
+ }
+ 
+ /*
+diff --git a/src/plugins/wireguard/wireguard_timer.c b/src/plugins/wireguard/wireguard_timer.c
+index b245b853f..3172c365b 100644
+--- a/src/plugins/wireguard/wireguard_timer.c
++++ b/src/plugins/wireguard/wireguard_timer.c
+@@ -77,7 +77,7 @@ start_timer_from_mt (u32 peer_idx, u32 timer_id, u32 interval_ticks)
+   wg_peer_t *peer = wg_peer_get (peer_idx);
+   if (PREDICT_FALSE (!peer->timers_dispatched[timer_id]))
+     if (!clib_atomic_cmp_and_swap (&peer->timers_dispatched[timer_id], 0, 1))
+-      vl_api_rpc_call_main_thread (start_timer_thread_fn, (u8 *) &a,
++      vl_api_rpc_call_main_thread (start_timer_thread_fn, (u8 *) & a,
+ 				   sizeof (a));
+ }
+ 
+@@ -191,7 +191,7 @@ wg_expired_zero_key_material (vlib_main_t * vm, wg_peer_t * peer)
+       return;
+     }
+ 
+-  if (!peer->is_dead)
++  if (!wg_peer_is_dead (peer))
+     {
+       noise_remote_clear (vm, &peer->remote);
+     }
+-- 
+2.25.1
+

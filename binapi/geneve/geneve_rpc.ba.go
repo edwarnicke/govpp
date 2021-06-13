@@ -11,7 +11,7 @@ import (
 	vpe "github.com/edwarnicke/govpp/binapi/vpe"
 )
 
-// RPCService defines RPC service  geneve.
+// RPCService defines RPC service geneve.
 type RPCService interface {
 	GeneveAddDelTunnel(ctx context.Context, in *GeneveAddDelTunnel) (*GeneveAddDelTunnelReply, error)
 	GeneveAddDelTunnel2(ctx context.Context, in *GeneveAddDelTunnel2) (*GeneveAddDelTunnel2Reply, error)
@@ -33,7 +33,7 @@ func (c *serviceClient) GeneveAddDelTunnel(ctx context.Context, in *GeneveAddDel
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) GeneveAddDelTunnel2(ctx context.Context, in *GeneveAddDelTunnel2) (*GeneveAddDelTunnel2Reply, error) {
@@ -42,7 +42,7 @@ func (c *serviceClient) GeneveAddDelTunnel2(ctx context.Context, in *GeneveAddDe
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) GeneveTunnelDump(ctx context.Context, in *GeneveTunnelDump) (RPCService_GeneveTunnelDumpClient, error) {
@@ -90,5 +90,5 @@ func (c *serviceClient) SwInterfaceSetGeneveBypass(ctx context.Context, in *SwIn
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return out, api.RetvalToVPPApiError(out.Retval)
 }

@@ -127,7 +127,7 @@ type EidAddressUnion struct {
 	// - Prefix *ip_types.Prefix
 	// - Mac *ethernet_types.MacAddress
 	// - Nsh *Nsh
-	XXX_UnionData [6]byte
+	XXX_UnionData [18]byte
 }
 
 func EidAddressUnionPrefix(a ip_types.Prefix) (u EidAddressUnion) {
