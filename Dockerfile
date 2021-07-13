@@ -1,4 +1,4 @@
-ARG VPP_VERSION=v20.09
+ARG VPP_VERSION=v21.06
 ARG UBUNTU_VERSION=20.04
 ARG GOVPP_VERSION=v0.3.5
 
@@ -13,8 +13,8 @@ RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive TZ=US/Central apt-get install -y git make python3 sudo asciidoc
 RUN git clone -b ${VPP_VERSION} https://github.com/FDio/vpp.git
 WORKDIR /vpp
-COPY patch/ patch/
-RUN git apply patch/*.patch
+#COPY patch/ patch/
+#RUN git apply patch/*.patch
 RUN DEBIAN_FRONTEND=noninteractive TZ=US/Central UNATTENDED=y make install-dep
 RUN make pkg-deb
 RUN ./src/scripts/version > /vpp/VPP_VERSION
