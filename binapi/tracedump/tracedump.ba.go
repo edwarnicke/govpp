@@ -29,6 +29,7 @@ const (
 )
 
 // TraceDetails defines message 'trace_details'.
+// InProgress: the message form may change in the future versions
 type TraceDetails struct {
 	ThreadID       uint32 `binapi:"u32,name=thread_id" json:"thread_id,omitempty"`
 	Position       uint32 `binapi:"u32,name=position" json:"position,omitempty"`
@@ -82,6 +83,7 @@ func (m *TraceDetails) Unmarshal(b []byte) error {
 }
 
 // TraceDump defines message 'trace_dump'.
+// InProgress: the message form may change in the future versions
 type TraceDump struct {
 	ClearCache uint8  `binapi:"u8,name=clear_cache" json:"clear_cache,omitempty"`
 	ThreadID   uint32 `binapi:"u32,name=thread_id" json:"thread_id,omitempty"`
@@ -127,6 +129,7 @@ func (m *TraceDump) Unmarshal(b []byte) error {
 }
 
 // TraceDumpReply defines message 'trace_dump_reply'.
+// InProgress: the message form may change in the future versions
 type TraceDumpReply struct {
 	Retval         int32  `binapi:"i32,name=retval" json:"retval,omitempty"`
 	LastThreadID   uint32 `binapi:"u32,name=last_thread_id" json:"last_thread_id,omitempty"`

@@ -33,6 +33,7 @@ const (
 )
 
 // FlowAdd defines message 'flow_add'.
+// InProgress: the message form may change in the future versions
 type FlowAdd struct {
 	Flow flow_types.FlowRule `binapi:"flow_rule,name=flow" json:"flow,omitempty"`
 }
@@ -90,6 +91,7 @@ func (m *FlowAdd) Unmarshal(b []byte) error {
 }
 
 // FlowAddReply defines message 'flow_add_reply'.
+// InProgress: the message form may change in the future versions
 type FlowAddReply struct {
 	Retval    int32  `binapi:"i32,name=retval" json:"retval,omitempty"`
 	FlowIndex uint32 `binapi:"u32,name=flow_index" json:"flow_index,omitempty"`
@@ -127,6 +129,7 @@ func (m *FlowAddReply) Unmarshal(b []byte) error {
 }
 
 // FlowDel defines message 'flow_del'.
+// InProgress: the message form may change in the future versions
 type FlowDel struct {
 	FlowIndex uint32 `binapi:"u32,name=flow_index" json:"flow_index,omitempty"`
 }
@@ -160,6 +163,7 @@ func (m *FlowDel) Unmarshal(b []byte) error {
 }
 
 // FlowDelReply defines message 'flow_del_reply'.
+// InProgress: the message form may change in the future versions
 type FlowDelReply struct {
 	Retval int32 `binapi:"i32,name=retval" json:"retval,omitempty"`
 }
@@ -193,6 +197,7 @@ func (m *FlowDelReply) Unmarshal(b []byte) error {
 }
 
 // FlowDisable defines message 'flow_disable'.
+// InProgress: the message form may change in the future versions
 type FlowDisable struct {
 	FlowIndex uint32 `binapi:"u32,name=flow_index" json:"flow_index,omitempty"`
 	HwIfIndex uint32 `binapi:"u32,name=hw_if_index" json:"hw_if_index,omitempty"`
@@ -230,6 +235,7 @@ func (m *FlowDisable) Unmarshal(b []byte) error {
 }
 
 // FlowDisableReply defines message 'flow_disable_reply'.
+// InProgress: the message form may change in the future versions
 type FlowDisableReply struct {
 	Retval int32 `binapi:"i32,name=retval" json:"retval,omitempty"`
 }
@@ -263,6 +269,7 @@ func (m *FlowDisableReply) Unmarshal(b []byte) error {
 }
 
 // FlowEnable defines message 'flow_enable'.
+// InProgress: the message form may change in the future versions
 type FlowEnable struct {
 	FlowIndex uint32 `binapi:"u32,name=flow_index" json:"flow_index,omitempty"`
 	HwIfIndex uint32 `binapi:"u32,name=hw_if_index" json:"hw_if_index,omitempty"`
@@ -300,6 +307,7 @@ func (m *FlowEnable) Unmarshal(b []byte) error {
 }
 
 // FlowEnableReply defines message 'flow_enable_reply'.
+// InProgress: the message form may change in the future versions
 type FlowEnableReply struct {
 	Retval int32 `binapi:"i32,name=retval" json:"retval,omitempty"`
 }
