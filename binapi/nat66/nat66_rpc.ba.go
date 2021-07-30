@@ -16,6 +16,7 @@ type RPCService interface {
 	Nat66AddDelInterface(ctx context.Context, in *Nat66AddDelInterface) (*Nat66AddDelInterfaceReply, error)
 	Nat66AddDelStaticMapping(ctx context.Context, in *Nat66AddDelStaticMapping) (*Nat66AddDelStaticMappingReply, error)
 	Nat66InterfaceDump(ctx context.Context, in *Nat66InterfaceDump) (RPCService_Nat66InterfaceDumpClient, error)
+	Nat66PluginEnableDisable(ctx context.Context, in *Nat66PluginEnableDisable) (*Nat66PluginEnableDisableReply, error)
 	Nat66StaticMappingDump(ctx context.Context, in *Nat66StaticMappingDump) (RPCService_Nat66StaticMappingDumpClient, error)
 }
 
@@ -82,6 +83,15 @@ func (c *serviceClient_Nat66InterfaceDumpClient) Recv() (*Nat66InterfaceDetails,
 	default:
 		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
 	}
+}
+
+func (c *serviceClient) Nat66PluginEnableDisable(ctx context.Context, in *Nat66PluginEnableDisable) (*Nat66PluginEnableDisableReply, error) {
+	out := new(Nat66PluginEnableDisableReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) Nat66StaticMappingDump(ctx context.Context, in *Nat66StaticMappingDump) (RPCService_Nat66StaticMappingDumpClient, error) {
