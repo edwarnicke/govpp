@@ -13,6 +13,7 @@ import (
 
 // RPCService defines RPC service udp.
 type RPCService interface {
+	UDPDecapAddDel(ctx context.Context, in *UDPDecapAddDel) (*UDPDecapAddDelReply, error)
 	UDPEncapAdd(ctx context.Context, in *UDPEncapAdd) (*UDPEncapAddReply, error)
 	UDPEncapDel(ctx context.Context, in *UDPEncapDel) (*UDPEncapDelReply, error)
 	UDPEncapDump(ctx context.Context, in *UDPEncapDump) (RPCService_UDPEncapDumpClient, error)
@@ -24,6 +25,15 @@ type serviceClient struct {
 
 func NewServiceClient(conn api.Connection) RPCService {
 	return &serviceClient{conn}
+}
+
+func (c *serviceClient) UDPDecapAddDel(ctx context.Context, in *UDPDecapAddDel) (*UDPDecapAddDelReply, error) {
+	out := new(UDPDecapAddDelReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) UDPEncapAdd(ctx context.Context, in *UDPEncapAdd) (*UDPEncapAddReply, error) {

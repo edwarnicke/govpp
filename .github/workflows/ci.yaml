@@ -159,7 +159,7 @@ jobs:
                php8.0-zmq \
                snmp pollinate libpq-dev postgresql-client powershell ruby-full \
                libnginx-mod-http-image-filter libmono-system-web4.0-cil monodoc-http \
-               sphinxsearch subversion mongodb-org -yq
+               sphinxsearch subversion mongodb-org -yq --allow-remove-essential
           sudo apt-get autoremove -y
           sudo apt-get autoclean -y
           sudo rm -rf /usr/local/lib/android

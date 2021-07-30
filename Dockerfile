@@ -1,4 +1,4 @@
-ARG VPP_VERSION=v20.09
+ARG VPP_VERSION=6f6663f3ba814e5f721f7cc679e3098812ad93c3
 ARG UBUNTU_VERSION=20.04
 ARG GOVPP_VERSION=v0.3.5
 
@@ -11,10 +11,11 @@ FROM ubuntu:${UBUNTU_VERSION} as vppbuild
 ARG VPP_VERSION
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive TZ=US/Central apt-get install -y git make python3 sudo asciidoc
-RUN git clone -b ${VPP_VERSION} https://github.com/FDio/vpp.git
+RUN git clone https://github.com/FDio/vpp.git
 WORKDIR /vpp
+RUN git checkout ${VPP_VERSION}
 COPY patch/ patch/
-RUN git apply patch/*.patch
+RUN if [ -f "patch/patch.sh"];then /bin/bash -c patch/patch.sh;fi
 RUN DEBIAN_FRONTEND=noninteractive TZ=US/Central UNATTENDED=y make install-dep
 RUN make pkg-deb
 RUN ./src/scripts/version > /vpp/VPP_VERSION
