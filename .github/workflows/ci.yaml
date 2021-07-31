@@ -166,7 +166,7 @@ jobs:
           sudo apt clean
           docker rmi $(docker image ls -aq)
           df -h
-      - name: Docker Build VPP 20.09
+      - name: Docker Build
         run: |
           docker build .
           VPP_VERSION=$(docker run $(docker build -q . --target version))
@@ -182,6 +182,6 @@ jobs:
         run: go generate ./...
       - name: Check for changes in generated code
         run: |
-          git diff -- 'pkg/v*/binapi' || ( echo "Rerun go generate ./... locally and resubmit" && false )
+          git diff --quiet -- binapi || (echo "Rerun go generate ./... locally and resubmit" && exit -1)
       - name: Go Build
         run: go build ./...
