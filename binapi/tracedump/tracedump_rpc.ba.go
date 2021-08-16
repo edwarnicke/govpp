@@ -12,7 +12,10 @@ import (
 
 // RPCService defines RPC service tracedump.
 type RPCService interface {
+	TraceCapturePackets(ctx context.Context, in *TraceCapturePackets) (*TraceCapturePacketsReply, error)
+	TraceClearCapture(ctx context.Context, in *TraceClearCapture) (*TraceClearCaptureReply, error)
 	TraceDump(ctx context.Context, in *TraceDump) (RPCService_TraceDumpClient, error)
+	TraceSetFilters(ctx context.Context, in *TraceSetFilters) (*TraceSetFiltersReply, error)
 }
 
 type serviceClient struct {
@@ -21,6 +24,24 @@ type serviceClient struct {
 
 func NewServiceClient(conn api.Connection) RPCService {
 	return &serviceClient{conn}
+}
+
+func (c *serviceClient) TraceCapturePackets(ctx context.Context, in *TraceCapturePackets) (*TraceCapturePacketsReply, error) {
+	out := new(TraceCapturePacketsReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
+func (c *serviceClient) TraceClearCapture(ctx context.Context, in *TraceClearCapture) (*TraceClearCaptureReply, error) {
+	out := new(TraceClearCaptureReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
 
 func (c *serviceClient) TraceDump(ctx context.Context, in *TraceDump) (RPCService_TraceDumpClient, error) {
@@ -57,4 +78,13 @@ func (c *serviceClient_TraceDumpClient) Recv() (*TraceDetails, error) {
 	default:
 		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
 	}
+}
+
+func (c *serviceClient) TraceSetFilters(ctx context.Context, in *TraceSetFilters) (*TraceSetFiltersReply, error) {
+	out := new(TraceSetFiltersReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
 }
