@@ -171,13 +171,10 @@ jobs:
           docker build .
           VPP_VERSION=$(docker run $(docker build -q . --target version))
           echo "VPP_VERSION=${VPP_VERSION}" >> $GITHUB_ENV
-          docker build -t ghcr.io/${{github.repository}}/vpp:${VPP_VERSION} . --target vpp
-          docker build -t ghcr.io/${{github.repository}}/vpp-dbg:${VPP_VERSION} . --target vpp-dbg
-      - name: Docker Push
-        if: ${{steps.secrets.outputs.GHCR_TOKEN != '' && github.head_ref == ''}}
-        run: |
-          docker push ghcr.io/${{github.repository}}/vpp:${VPP_VERSION}
-          docker push ghcr.io/${{github.repository}}/vpp-dbg:${VPP_VERSION}
+          TAG=${VPP_VERSION/\~g/-}
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+          docker build -t ghcr.io/${{github.repository}}/vpp:${TAG} . --target vpp
+          docker build -t ghcr.io/${{github.repository}}/vpp-dbg:${TAG} . --target vpp-dbg
       - name: Generate files
         run: go generate ./...
       - name: Check for changes in generated code
@@ -185,3 +182,15 @@ jobs:
           git diff -- binapi || (echo "Rerun go generate ./... locally and resubmit" && exit -1)
       - name: Go Build
         run: go build ./...
+      - name: Docker Push
+        if: ${{steps.secrets.outputs.GHCR_TOKEN != '' && github.head_ref == ''}}
+        run: |
+          docker push ghcr.io/${{github.repository}}/vpp:${TAG}
+          docker push ghcr.io/${{github.repository}}/vpp-dbg:${TAG}
+      - name: Tag
+        if: ${{steps.secrets.outputs.GHCR_TOKEN != '' && github.head_ref == ''}}
+        id: tag
+        uses: mathieudutour/github-tag-action@v5.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ env.TAG }}

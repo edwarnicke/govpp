@@ -2,11 +2,6 @@ ARG VPP_VERSION=v21.06
 ARG UBUNTU_VERSION=20.04
 ARG GOVPP_VERSION=v0.3.5
 
-FROM ubuntu:${UBUNTU_VERSION} as version
-ARG VPP_VERSION
-ENV VPP_VERSION ${VPP_VERSION}
-CMD echo ${VPP_VERSION}
-
 FROM ubuntu:${UBUNTU_VERSION} as vppbuild
 ARG VPP_VERSION
 RUN apt-get update
@@ -19,6 +14,9 @@ RUN test -x "patch/patch.sh" && ./patch/patch.sh || exit 1
 RUN DEBIAN_FRONTEND=noninteractive TZ=US/Central UNATTENDED=y make install-dep
 RUN make pkg-deb
 RUN ./src/scripts/version > /vpp/VPP_VERSION
+
+FROM vppbuild as version
+CMD cat /vpp/VPP_VERSION
 
 FROM ubuntu:${UBUNTU_VERSION} as vppinstall
 COPY --from=vppbuild /var/lib/apt/lists/* /var/lib/apt/lists/
