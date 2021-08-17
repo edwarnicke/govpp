@@ -26,5 +26,6 @@ git_cherry_pick refs/changes/20/33020/2 # 33020 l3xc: reset dpo on delete
 
 if [ "$(ls ./patch/*.patch 2> /dev/null)" ]; then
   git apply patch/*.patch
+  git add --all
   git commit -m "misc patches"
 fi
