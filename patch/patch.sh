@@ -23,6 +23,8 @@ git_cherry_pick refs/changes/09/32009/5  # 32009 wireguard: add ipv6 support
 git_cherry_pick refs/changes/85/32685/4  # 32685 wireguard: add events for peer
 git_cherry_pick refs/changes/03/33303/2 # 33303 memif: fix offset
 git_cherry_pick refs/changes/20/33020/2 # 33020 l3xc: reset dpo on delete
+git_cherry_pick refs/changes/68/33568/1  # 33568 ip: check if interface has link-local address (addition)
+git_cherry_pick refs/changes/58/33558/1  # 33558 ip: check if interface has link-local address
 
 if [ "$(ls ./patch/*.patch 2> /dev/null)" ]; then
   git apply patch/*.patch
