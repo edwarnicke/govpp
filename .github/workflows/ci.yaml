@@ -54,8 +54,6 @@ jobs:
                dotnet-sdk-3.1  dotnet-sdk-5.0 \
                esl-erlang firefox g++-7 g++-8 g++-9 g++-10 gfortran-8 gfortran-9 gfortran-10 google-chrome-stable \
                google-cloud-sdk \
-               ghc-8.10.4 \
-               ghc-9.0.1 \
                imagemagick \
                libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional \
                mercurial apt-transport-https mono-complete mysql-client libmysqlclient-dev \
