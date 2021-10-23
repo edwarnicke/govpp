@@ -169,7 +169,7 @@ jobs:
           docker build .
           VPP_VERSION=$(docker run $(docker build -q . --target version))
           echo "VPP_VERSION=${VPP_VERSION}" >> $GITHUB_ENV
-          TAG=v${VPP_VERSION/\~g/-}
+          TAG=v${VPP_VERSION/\~/-}
           echo "TAG=${TAG}" >> $GITHUB_ENV
           docker build -t ghcr.io/${{github.repository}}/vpp:${TAG} . --target vpp
           docker build -t ghcr.io/${{github.repository}}/vpp-dbg:${TAG} . --target vpp-dbg

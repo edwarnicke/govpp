@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	vpe "github.com/edwarnicke/govpp/binapi/vpe"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service vxlan_gbp.
@@ -53,7 +53,7 @@ func (c *serviceClient) VxlanGbpTunnelDump(ctx context.Context, in *VxlanGbpTunn
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -76,7 +76,7 @@ func (c *serviceClient_VxlanGbpTunnelDumpClient) Recv() (*VxlanGbpTunnelDetails,
 	switch m := msg.(type) {
 	case *VxlanGbpTunnelDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err

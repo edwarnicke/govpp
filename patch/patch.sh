@@ -12,21 +12,23 @@ function git_cherry_pick ()
 	git commit --amend -m "gerrit:${refs#refs/changes/*/} $(git log -1 --pretty=%B)"
 }
 
-# NSM
-#git_cherry_pick refs/changes/21/33421/16 # 33421 ping: fix breakage around source address selection (sas)
-git_cherry_pick refs/changes/49/33449/9  # 33449 ip: source address selection
-git_cherry_pick refs/changes/56/33156/3  # 33156 ip-neighbor: GARP sent to bogus ip address # added to avoid merge conflict with 33495
-git_cherry_pick refs/changes/95/33495/2  # 33495 arp: source address selection
-git_cherry_pick refs/changes/13/32413/9  # 32413 wireguard: move adjacency processing from wireguard_peer to wireguard_interface
-git_cherry_pick refs/changes/43/32443/11  # 32443 wireguard: use the same udp-port for multi-tunnel
-git_cherry_pick refs/changes/09/32009/12  # 32009 wireguard: add ipv6 support
-git_cherry_pick refs/changes/85/32685/12  # 32685 wireguard: add events for peer
-git_cherry_pick refs/changes/93/33993/2  # 33993 wireguard: peers dump fix
-git_cherry_pick refs/changes/03/33303/2 # 33303 memif: fix offset
-git_cherry_pick refs/changes/20/33020/2 # 33020 l3xc: reset dpo on delete
-git_cherry_pick refs/changes/68/33568/1  # 33568 ip: check if interface has link-local address (addition)
-git_cherry_pick refs/changes/58/33558/1  # 33558 ip: check if interface has link-local address
-git_cherry_pick refs/changes/29/33729/2  # 33729 ping: set fib_index for lookup_node
+# NSM cherrypicks
+git_cherry_pick refs/changes/12/34212/3 # 34212: arp: fix for source address selection
+
+# Calico cherry picks
+git_cherry_pick refs/changes/86/29386/9 # 29386: virtio: DRAFT: multi tx support | https://gerrit.fd.io/r/c/vpp/+/29386
+git_cherry_pick refs/changes/82/32482/6 # 32482: virtio: compute cksums in output no offload | https://gerrit.fd.io/r/c/vpp/+/32482
+git_cherry_pick refs/changes/71/32271/7 # 32271: memif: add support for ns abstract sockets | https://gerrit.fd.io/r/c/vpp/+/32271
+git_cherry_pick refs/changes/49/33749/5 # 33749: ip: fix fib and mfib locks | https://gerrit.fd.io/r/c/vpp/+/33749
+git_cherry_pick refs/changes/57/33557/4 # 33557: ip: unlock_fib on if delete | https://gerrit.fd.io/r/c/vpp/+/33557
+git_cherry_pick refs/changes/08/33708/7 # 33708: ip: Add ip46-local node for local swif[rx] | https://gerrit.fd.io/r/c/vpp/+/33708
+
+# --------------- Dedicated plugins ---------------
+git_cherry_pick refs/changes/64/33264/3 # 33264: pbl: Port based balancer | https://gerrit.fd.io/r/c/vpp/+/33264
+git_cherry_pick refs/changes/88/31588/1 # 31588: cnat: [WIP] no k8s maglev from pods | https://gerrit.fd.io/r/c/vpp/+/31588
+git_cherry_pick refs/changes/83/28083/20 # 28083: acl: acl-plugin custom policies |  https://gerrit.fd.io/r/c/vpp/+/28083
+git_cherry_pick refs/changes/13/28513/24 # 25813: capo: Calico Policies plugin | https://gerrit.fd.io/r/c/vpp/+/28513
+# --------------- Dedicated plugins ---------------
 
 if [ "$(ls ./patch/*.patch 2> /dev/null)" ]; then
   git apply patch/*.patch

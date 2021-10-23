@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	vpe "github.com/edwarnicke/govpp/binapi/vpe"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service ipfix_export.
@@ -39,7 +39,7 @@ func (c *serviceClient) IpfixClassifyStreamDump(ctx context.Context, in *IpfixCl
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -62,7 +62,7 @@ func (c *serviceClient_IpfixClassifyStreamDumpClient) Recv() (*IpfixClassifyStre
 	switch m := msg.(type) {
 	case *IpfixClassifyStreamDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -91,7 +91,7 @@ func (c *serviceClient) IpfixClassifyTableDump(ctx context.Context, in *IpfixCla
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -114,7 +114,7 @@ func (c *serviceClient_IpfixClassifyTableDumpClient) Recv() (*IpfixClassifyTable
 	switch m := msg.(type) {
 	case *IpfixClassifyTableDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -134,7 +134,7 @@ func (c *serviceClient) IpfixExporterDump(ctx context.Context, in *IpfixExporter
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -157,7 +157,7 @@ func (c *serviceClient_IpfixExporterDumpClient) Recv() (*IpfixExporterDetails, e
 	switch m := msg.(type) {
 	case *IpfixExporterDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
