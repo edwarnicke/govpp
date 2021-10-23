@@ -8,11 +8,12 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	vpe "github.com/edwarnicke/govpp/binapi/vpe"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service ip.
 type RPCService interface {
+	AddDelIPPuntRedirectV2(ctx context.Context, in *AddDelIPPuntRedirectV2) (*AddDelIPPuntRedirectV2Reply, error)
 	IoamDisable(ctx context.Context, in *IoamDisable) (*IoamDisableReply, error)
 	IoamEnable(ctx context.Context, in *IoamEnable) (*IoamEnableReply, error)
 	IPAddressDump(ctx context.Context, in *IPAddressDump) (RPCService_IPAddressDumpClient, error)
@@ -29,6 +30,7 @@ type RPCService interface {
 	IPPuntPolice(ctx context.Context, in *IPPuntPolice) (*IPPuntPoliceReply, error)
 	IPPuntRedirect(ctx context.Context, in *IPPuntRedirect) (*IPPuntRedirectReply, error)
 	IPPuntRedirectDump(ctx context.Context, in *IPPuntRedirectDump) (RPCService_IPPuntRedirectDumpClient, error)
+	IPPuntRedirectV2Dump(ctx context.Context, in *IPPuntRedirectV2Dump) (RPCService_IPPuntRedirectV2DumpClient, error)
 	IPReassemblyEnableDisable(ctx context.Context, in *IPReassemblyEnableDisable) (*IPReassemblyEnableDisableReply, error)
 	IPReassemblyGet(ctx context.Context, in *IPReassemblyGet) (*IPReassemblyGetReply, error)
 	IPReassemblySet(ctx context.Context, in *IPReassemblySet) (*IPReassemblySetReply, error)
@@ -64,6 +66,15 @@ func NewServiceClient(conn api.Connection) RPCService {
 	return &serviceClient{conn}
 }
 
+func (c *serviceClient) AddDelIPPuntRedirectV2(ctx context.Context, in *AddDelIPPuntRedirectV2) (*AddDelIPPuntRedirectV2Reply, error) {
+	out := new(AddDelIPPuntRedirectV2Reply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
 func (c *serviceClient) IoamDisable(ctx context.Context, in *IoamDisable) (*IoamDisableReply, error) {
 	out := new(IoamDisableReply)
 	err := c.conn.Invoke(ctx, in, out)
@@ -91,7 +102,7 @@ func (c *serviceClient) IPAddressDump(ctx context.Context, in *IPAddressDump) (R
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -114,7 +125,7 @@ func (c *serviceClient_IPAddressDumpClient) Recv() (*IPAddressDetails, error) {
 	switch m := msg.(type) {
 	case *IPAddressDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -143,7 +154,7 @@ func (c *serviceClient) IPContainerProxyDump(ctx context.Context, in *IPContaine
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -166,7 +177,7 @@ func (c *serviceClient_IPContainerProxyDumpClient) Recv() (*IPContainerProxyDeta
 	switch m := msg.(type) {
 	case *IPContainerProxyDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -186,7 +197,7 @@ func (c *serviceClient) IPDump(ctx context.Context, in *IPDump) (RPCService_IPDu
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -209,7 +220,7 @@ func (c *serviceClient_IPDumpClient) Recv() (*IPDetails, error) {
 	switch m := msg.(type) {
 	case *IPDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -238,7 +249,7 @@ func (c *serviceClient) IPMrouteDump(ctx context.Context, in *IPMrouteDump) (RPC
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -261,7 +272,7 @@ func (c *serviceClient_IPMrouteDumpClient) Recv() (*IPMrouteDetails, error) {
 	switch m := msg.(type) {
 	case *IPMrouteDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -281,7 +292,7 @@ func (c *serviceClient) IPMtableDump(ctx context.Context, in *IPMtableDump) (RPC
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -304,7 +315,7 @@ func (c *serviceClient_IPMtableDumpClient) Recv() (*IPMtableDetails, error) {
 	switch m := msg.(type) {
 	case *IPMtableDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -409,7 +420,7 @@ func (c *serviceClient) IPPuntRedirectDump(ctx context.Context, in *IPPuntRedire
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -432,7 +443,50 @@ func (c *serviceClient_IPPuntRedirectDumpClient) Recv() (*IPPuntRedirectDetails,
 	switch m := msg.(type) {
 	case *IPPuntRedirectDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
+		err = c.Stream.Close()
+		if err != nil {
+			return nil, err
+		}
+		return nil, io.EOF
+	default:
+		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
+	}
+}
+
+func (c *serviceClient) IPPuntRedirectV2Dump(ctx context.Context, in *IPPuntRedirectV2Dump) (RPCService_IPPuntRedirectV2DumpClient, error) {
+	stream, err := c.conn.NewStream(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x := &serviceClient_IPPuntRedirectV2DumpClient{stream}
+	if err := x.Stream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type RPCService_IPPuntRedirectV2DumpClient interface {
+	Recv() (*IPPuntRedirectV2Details, error)
+	api.Stream
+}
+
+type serviceClient_IPPuntRedirectV2DumpClient struct {
+	api.Stream
+}
+
+func (c *serviceClient_IPPuntRedirectV2DumpClient) Recv() (*IPPuntRedirectV2Details, error) {
+	msg, err := c.Stream.RecvMsg()
+	if err != nil {
+		return nil, err
+	}
+	switch m := msg.(type) {
+	case *IPPuntRedirectV2Details:
+		return m, nil
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -497,7 +551,7 @@ func (c *serviceClient) IPRouteDump(ctx context.Context, in *IPRouteDump) (RPCSe
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -520,7 +574,7 @@ func (c *serviceClient_IPRouteDumpClient) Recv() (*IPRouteDetails, error) {
 	switch m := msg.(type) {
 	case *IPRouteDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -558,7 +612,7 @@ func (c *serviceClient) IPRouteV2Dump(ctx context.Context, in *IPRouteV2Dump) (R
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -581,7 +635,7 @@ func (c *serviceClient_IPRouteV2DumpClient) Recv() (*IPRouteV2Details, error) {
 	switch m := msg.(type) {
 	case *IPRouteV2Details:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -637,7 +691,7 @@ func (c *serviceClient) IPTableDump(ctx context.Context, in *IPTableDump) (RPCSe
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -660,7 +714,7 @@ func (c *serviceClient_IPTableDumpClient) Recv() (*IPTableDetails, error) {
 	switch m := msg.(type) {
 	case *IPTableDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -707,7 +761,7 @@ func (c *serviceClient) IPUnnumberedDump(ctx context.Context, in *IPUnnumberedDu
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -730,7 +784,7 @@ func (c *serviceClient_IPUnnumberedDumpClient) Recv() (*IPUnnumberedDetails, err
 	switch m := msg.(type) {
 	case *IPUnnumberedDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -750,7 +804,7 @@ func (c *serviceClient) MfibSignalDump(ctx context.Context, in *MfibSignalDump) 
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vpe.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -773,7 +827,7 @@ func (c *serviceClient_MfibSignalDumpClient) Recv() (*MfibSignalDetails, error) 
 	switch m := msg.(type) {
 	case *MfibSignalDetails:
 		return m, nil
-	case *vpe.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
