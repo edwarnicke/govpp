@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	vlib "github.com/edwarnicke/govpp/binapi/vlib"
+	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
 )
 
 // RPCService defines RPC service map.
@@ -75,7 +75,7 @@ func (c *serviceClient) MapDomainDump(ctx context.Context, in *MapDomainDump) (R
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -98,7 +98,7 @@ func (c *serviceClient_MapDomainDumpClient) Recv() (*MapDomainDetails, error) {
 	switch m := msg.(type) {
 	case *MapDomainDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -239,7 +239,7 @@ func (c *serviceClient) MapRuleDump(ctx context.Context, in *MapRuleDump) (RPCSe
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -262,7 +262,7 @@ func (c *serviceClient_MapRuleDumpClient) Recv() (*MapRuleDetails, error) {
 	switch m := msg.(type) {
 	case *MapRuleDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
