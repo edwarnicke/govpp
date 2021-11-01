@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	vlib "github.com/edwarnicke/govpp/binapi/vlib"
+	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
 )
 
 // RPCService defines RPC service classify.
@@ -98,7 +98,7 @@ func (c *serviceClient) ClassifySessionDump(ctx context.Context, in *ClassifySes
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -121,7 +121,7 @@ func (c *serviceClient_ClassifySessionDumpClient) Recv() (*ClassifySessionDetail
 	switch m := msg.(type) {
 	case *ClassifySessionDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -213,7 +213,7 @@ func (c *serviceClient) FlowClassifyDump(ctx context.Context, in *FlowClassifyDu
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -236,7 +236,7 @@ func (c *serviceClient_FlowClassifyDumpClient) Recv() (*FlowClassifyDetails, err
 	switch m := msg.(type) {
 	case *FlowClassifyDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -283,7 +283,7 @@ func (c *serviceClient) PolicerClassifyDump(ctx context.Context, in *PolicerClas
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -306,7 +306,7 @@ func (c *serviceClient_PolicerClassifyDumpClient) Recv() (*PolicerClassifyDetail
 	switch m := msg.(type) {
 	case *PolicerClassifyDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
