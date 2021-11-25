@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service gtpu.
@@ -55,7 +55,7 @@ func (c *serviceClient) GtpuTunnelDump(ctx context.Context, in *GtpuTunnelDump) 
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -78,7 +78,7 @@ func (c *serviceClient_GtpuTunnelDumpClient) Recv() (*GtpuTunnelDetails, error) 
 	switch m := msg.(type) {
 	case *GtpuTunnelDetails:
 		return m, nil
-	case *memclnt.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
