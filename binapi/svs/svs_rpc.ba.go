@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service svs.
@@ -37,7 +37,7 @@ func (c *serviceClient) SvsDump(ctx context.Context, in *SvsDump) (RPCService_Sv
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -60,7 +60,7 @@ func (c *serviceClient_SvsDumpClient) Recv() (*SvsDetails, error) {
 	switch m := msg.(type) {
 	case *SvsDetails:
 		return m, nil
-	case *memclnt.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err

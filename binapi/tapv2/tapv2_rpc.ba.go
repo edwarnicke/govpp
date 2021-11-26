@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service tapv2.
@@ -35,7 +35,7 @@ func (c *serviceClient) SwInterfaceTapV2Dump(ctx context.Context, in *SwInterfac
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -58,7 +58,7 @@ func (c *serviceClient_SwInterfaceTapV2DumpClient) Recv() (*SwInterfaceTapV2Deta
 	switch m := msg.(type) {
 	case *SwInterfaceTapV2Details:
 		return m, nil
-	case *memclnt.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err

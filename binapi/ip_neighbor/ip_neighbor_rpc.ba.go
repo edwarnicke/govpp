@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
+	vlib "github.com/edwarnicke/govpp/binapi/vlib"
 )
 
 // RPCService defines RPC service ip_neighbor.
@@ -58,7 +58,7 @@ func (c *serviceClient) IPNeighborDump(ctx context.Context, in *IPNeighborDump) 
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -81,7 +81,7 @@ func (c *serviceClient_IPNeighborDumpClient) Recv() (*IPNeighborDetails, error) 
 	switch m := msg.(type) {
 	case *IPNeighborDetails:
 		return m, nil
-	case *memclnt.ControlPingReply:
+	case *vlib.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
