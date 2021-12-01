@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	vlib "github.com/edwarnicke/govpp/binapi/vlib"
+	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
 )
 
 // RPCService defines RPC service gbp.
@@ -73,7 +73,7 @@ func (c *serviceClient) GbpBridgeDomainDump(ctx context.Context, in *GbpBridgeDo
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -96,7 +96,7 @@ func (c *serviceClient_GbpBridgeDomainDumpClient) Recv() (*GbpBridgeDomainDetail
 	switch m := msg.(type) {
 	case *GbpBridgeDomainDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -125,7 +125,7 @@ func (c *serviceClient) GbpContractDump(ctx context.Context, in *GbpContractDump
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -148,7 +148,7 @@ func (c *serviceClient_GbpContractDumpClient) Recv() (*GbpContractDetails, error
 	switch m := msg.(type) {
 	case *GbpContractDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -186,7 +186,7 @@ func (c *serviceClient) GbpEndpointDump(ctx context.Context, in *GbpEndpointDump
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -209,7 +209,7 @@ func (c *serviceClient_GbpEndpointDumpClient) Recv() (*GbpEndpointDetails, error
 	switch m := msg.(type) {
 	case *GbpEndpointDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -247,7 +247,7 @@ func (c *serviceClient) GbpEndpointGroupDump(ctx context.Context, in *GbpEndpoin
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -270,7 +270,7 @@ func (c *serviceClient_GbpEndpointGroupDumpClient) Recv() (*GbpEndpointGroupDeta
 	switch m := msg.(type) {
 	case *GbpEndpointGroupDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -299,7 +299,7 @@ func (c *serviceClient) GbpExtItfDump(ctx context.Context, in *GbpExtItfDump) (R
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -322,7 +322,7 @@ func (c *serviceClient_GbpExtItfDumpClient) Recv() (*GbpExtItfDetails, error) {
 	switch m := msg.(type) {
 	case *GbpExtItfDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -351,7 +351,7 @@ func (c *serviceClient) GbpRecircDump(ctx context.Context, in *GbpRecircDump) (R
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -374,7 +374,7 @@ func (c *serviceClient_GbpRecircDumpClient) Recv() (*GbpRecircDetails, error) {
 	switch m := msg.(type) {
 	case *GbpRecircDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -412,7 +412,7 @@ func (c *serviceClient) GbpRouteDomainDump(ctx context.Context, in *GbpRouteDoma
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -435,7 +435,7 @@ func (c *serviceClient_GbpRouteDomainDumpClient) Recv() (*GbpRouteDomainDetails,
 	switch m := msg.(type) {
 	case *GbpRouteDomainDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -464,7 +464,7 @@ func (c *serviceClient) GbpSubnetDump(ctx context.Context, in *GbpSubnetDump) (R
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -487,7 +487,7 @@ func (c *serviceClient_GbpSubnetDumpClient) Recv() (*GbpSubnetDetails, error) {
 	switch m := msg.(type) {
 	case *GbpSubnetDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
@@ -525,7 +525,7 @@ func (c *serviceClient) GbpVxlanTunnelDump(ctx context.Context, in *GbpVxlanTunn
 	if err := x.Stream.SendMsg(in); err != nil {
 		return nil, err
 	}
-	if err = x.Stream.SendMsg(&vlib.ControlPing{}); err != nil {
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
 		return nil, err
 	}
 	return x, nil
@@ -548,7 +548,7 @@ func (c *serviceClient_GbpVxlanTunnelDumpClient) Recv() (*GbpVxlanTunnelDetails,
 	switch m := msg.(type) {
 	case *GbpVxlanTunnelDetails:
 		return m, nil
-	case *vlib.ControlPingReply:
+	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
 		if err != nil {
 			return nil, err
