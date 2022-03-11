@@ -40,13 +40,17 @@ jobs:
       - name: Docker Login
         if: ${{steps.secrets.outputs.GHCR_TOKEN != '' }}
         run: echo ${{secrets.GHCR_TOKEN}} | docker login ghcr.io -u ${{github.repository_owner}} --password-stdin
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 4
+      - name: Memory usage
+        run: free -m
       - name: List installed packages
         run: dpkg -la
       - name: Free Disk Space for Docker
         run: |
           df -h
-          sudo swapoff -a
-          sudo rm -f /swapfile
           sudo apt-get remove aria2 ansible azure-cli shellcheck rpm xorriso zsync \
                clang-8 lld-8 clang-format-8 \
                clang-10 lldb-10 lld-10 clang-format-10 \
