@@ -17,7 +17,6 @@ type RPCService interface {
 	MemifDelete(ctx context.Context, in *MemifDelete) (*MemifDeleteReply, error)
 	MemifDump(ctx context.Context, in *MemifDump) (RPCService_MemifDumpClient, error)
 	MemifSocketFilenameAddDel(ctx context.Context, in *MemifSocketFilenameAddDel) (*MemifSocketFilenameAddDelReply, error)
-	MemifSocketFilenameAddDelV2(ctx context.Context, in *MemifSocketFilenameAddDelV2) (*MemifSocketFilenameAddDelV2Reply, error)
 	MemifSocketFilenameDump(ctx context.Context, in *MemifSocketFilenameDump) (RPCService_MemifSocketFilenameDumpClient, error)
 }
 
@@ -92,15 +91,6 @@ func (c *serviceClient_MemifDumpClient) Recv() (*MemifDetails, error) {
 
 func (c *serviceClient) MemifSocketFilenameAddDel(ctx context.Context, in *MemifSocketFilenameAddDel) (*MemifSocketFilenameAddDelReply, error) {
 	out := new(MemifSocketFilenameAddDelReply)
-	err := c.conn.Invoke(ctx, in, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, api.RetvalToVPPApiError(out.Retval)
-}
-
-func (c *serviceClient) MemifSocketFilenameAddDelV2(ctx context.Context, in *MemifSocketFilenameAddDelV2) (*MemifSocketFilenameAddDelV2Reply, error) {
-	out := new(MemifSocketFilenameAddDelV2Reply)
 	err := c.conn.Invoke(ctx, in, out)
 	if err != nil {
 		return nil, err
