@@ -17,7 +17,6 @@ type RPCService interface {
 	PolicerBind(ctx context.Context, in *PolicerBind) (*PolicerBindReply, error)
 	PolicerDump(ctx context.Context, in *PolicerDump) (RPCService_PolicerDumpClient, error)
 	PolicerInput(ctx context.Context, in *PolicerInput) (*PolicerInputReply, error)
-	PolicerOutput(ctx context.Context, in *PolicerOutput) (*PolicerOutputReply, error)
 }
 
 type serviceClient struct {
@@ -91,15 +90,6 @@ func (c *serviceClient_PolicerDumpClient) Recv() (*PolicerDetails, error) {
 
 func (c *serviceClient) PolicerInput(ctx context.Context, in *PolicerInput) (*PolicerInputReply, error) {
 	out := new(PolicerInputReply)
-	err := c.conn.Invoke(ctx, in, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, api.RetvalToVPPApiError(out.Retval)
-}
-
-func (c *serviceClient) PolicerOutput(ctx context.Context, in *PolicerOutput) (*PolicerOutputReply, error) {
-	out := new(PolicerOutputReply)
 	err := c.conn.Invoke(ctx, in, out)
 	if err != nil {
 		return nil, err
