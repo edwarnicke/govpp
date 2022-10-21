@@ -32,6 +32,7 @@ git_cherry_pick refs/changes/13/28513/25 # 25813: capo: Calico Policies plugin |
 
 # NSM cherry-picks
 git_cherry_pick refs/changes/45/36945/2 # 36945: wireguard: fix ipv6 handshake packet | https://gerrit.fd.io/r/c/vpp/+/36945
+git_cherry_pick refs/changes/18/37018/1 # 37018: wireguard: fix ipv6 payload_length computation | https://gerrit.fd.io/r/c/vpp/+/37018
 
 if [ "$(ls ./patch/*.patch 2> /dev/null)" ]; then
   git apply patch/*.patch
