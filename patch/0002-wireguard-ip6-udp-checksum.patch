@@ -1,20 +1,40 @@
 diff --git a/src/plugins/wireguard/wireguard_output_tun.c b/src/plugins/wireguard/wireguard_output_tun.c
-index 635f5dc28..f1e2362ae 100644
+index 635f5dc28..5e1156fd5 100644
 --- a/src/plugins/wireguard/wireguard_output_tun.c
 +++ b/src/plugins/wireguard/wireguard_output_tun.c
-@@ -504,6 +504,12 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
- 				  sizeof (udp_header_t));
- 	  b[0]->current_length =
- 	    (encrypted_packet_len + sizeof (ip6_udp_header_t));
+@@ -550,6 +550,24 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+       /* wg-output-process-ops */
+       wg_output_process_ops (vm, node, ptd->crypto_ops, sync_bufs, nexts,
+ 			     drop_next);
 +
-+    /* IPv6 UDP checksum is mandatory */
-+    int bogus = 0;
-+    ip6_header_t *ip6_0 = &(hdr6_out->ip6);
-+	  hdr6_out->udp.checksum = ip6_tcp_udp_icmp_compute_checksum (vm, b[0], ip6_0, &bogus);
-+	  ASSERT (bogus == 0);
++      /* IPv6 UDP checksum is mandatory */
++      if (!is_ip4) {
++        int n_left_from_sync_bufs = n_sync;
++        while(n_left_from_sync_bufs > 0) {
++            n_left_from_sync_bufs--;
++            vlib_buffer_t * b0 = sync_bufs[n_left_from_sync_bufs];
++            u8 iph_offset = vnet_buffer (b0)->ip.save_rewrite_length;
++            ip6_header_t *ip6_0 = (ip6_header_t *) ((u8 *) vlib_buffer_get_current (b0)
++				    + iph_offset);
++            udp_header_t *udp0 = ip6_next_header (ip6_0);
++            int bogus = 0;
++
++            udp0->checksum = ip6_tcp_udp_icmp_compute_checksum (vm, b0, ip6_0, &bogus);
++            ASSERT (bogus == 0);
++        }
++      }
++
+       vlib_buffer_enqueue_to_next (vm, node, sync_bi, nexts, n_sync);
+     }
+   if (n_async)
+@@ -658,7 +676,6 @@ wg_output_tun_post (vlib_main_t *vm, vlib_node_runtime_t *node,
+ 	      tr->next_index = next[3];
+ 	    }
  	}
- 
-     out:
+-
+       b += 4;
+       next += 4;
+       n_left -= 4;
 diff --git a/src/plugins/wireguard/wireguard_send.c b/src/plugins/wireguard/wireguard_send.c
 index 5366cd91c..805067fb0 100644
 --- a/src/plugins/wireguard/wireguard_send.c
