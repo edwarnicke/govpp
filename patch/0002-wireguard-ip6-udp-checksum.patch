@@ -1,8 +1,20 @@
+From d892524003d045aa4c34fc1c6e993ceeb5d7a23e Mon Sep 17 00:00:00 2001
+From: Artem Glazychev <artem.glazychev@xored.com>
+Date: Sun, 23 Oct 2022 16:02:07 +0700
+Subject: [PATCH] wireguard ip6 udp checksum
+
+Signed-off-by: Artem Glazychev <artem.glazychev@xored.com>
+Change-Id: I91944e388fb86825be4bea3036f3d4c06960c2a9
+---
+ src/plugins/wireguard/wireguard_output_tun.c | 17 ++++++++++++++++-
+ src/plugins/wireguard/wireguard_send.c       | 10 ++++++++--
+ 2 files changed, 24 insertions(+), 3 deletions(-)
+
 diff --git a/src/plugins/wireguard/wireguard_output_tun.c b/src/plugins/wireguard/wireguard_output_tun.c
-index 635f5dc28..5e1156fd5 100644
+index 635f5dc28..e93ec1e5b 100644
 --- a/src/plugins/wireguard/wireguard_output_tun.c
 +++ b/src/plugins/wireguard/wireguard_output_tun.c
-@@ -550,6 +550,24 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
+@@ -550,6 +550,22 @@ wg_output_tun_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
        /* wg-output-process-ops */
        wg_output_process_ops (vm, node, ptd->crypto_ops, sync_bufs, nexts,
  			     drop_next);
@@ -13,9 +25,7 @@ index 635f5dc28..5e1156fd5 100644
 +        while(n_left_from_sync_bufs > 0) {
 +            n_left_from_sync_bufs--;
 +            vlib_buffer_t * b0 = sync_bufs[n_left_from_sync_bufs];
-+            u8 iph_offset = vnet_buffer (b0)->ip.save_rewrite_length;
-+            ip6_header_t *ip6_0 = (ip6_header_t *) ((u8 *) vlib_buffer_get_current (b0)
-+				    + iph_offset);
++            ip6_header_t *ip6_0 = (ip6_header_t *) ((u8 *) vlib_buffer_get_current (b0));
 +            udp_header_t *udp0 = ip6_next_header (ip6_0);
 +            int bogus = 0;
 +
@@ -27,7 +37,7 @@ index 635f5dc28..5e1156fd5 100644
        vlib_buffer_enqueue_to_next (vm, node, sync_bi, nexts, n_sync);
      }
    if (n_async)
-@@ -658,7 +676,6 @@ wg_output_tun_post (vlib_main_t *vm, vlib_node_runtime_t *node,
+@@ -658,7 +674,6 @@ wg_output_tun_post (vlib_main_t *vm, vlib_node_runtime_t *node,
  	      tr->next_index = next[3];
  	    }
  	}
@@ -70,3 +80,6 @@ index 5366cd91c..805067fb0 100644
  
    return true;
  }
+-- 
+2.37.3
+
