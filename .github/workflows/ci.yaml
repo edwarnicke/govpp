@@ -121,13 +121,18 @@ jobs:
           df -h
       - name: Docker Build
         run: |
-          docker build .
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker buildx create --use --bootstrap
+          echo "docker buildx inspect --bootstrap"
+          docker buildx inspect --bootstrap
+          echo "docker buildx build --platform linux/amd64,linux/arm64 ."
+          docker buildx build --platform linux/amd64,linux/arm64 .
           VPP_VERSION=$(docker run $(docker build -q . --target version))
           echo "VPP_VERSION=${VPP_VERSION}" >> $GITHUB_ENV
           TAG=v${VPP_VERSION/\~/-}
           echo "TAG=${TAG}" >> $GITHUB_ENV
-          docker build -t ghcr.io/${{github.repository}}/vpp:${TAG} . --target vpp
-          docker build -t ghcr.io/${{github.repository}}/vpp-dbg:${TAG} . --target vpp-dbg
+          docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/${{github.repository}}/vpp:${TAG} . --target vpp
+          docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/${{github.repository}}/vpp-dbg:${TAG} . --target vpp-dbg
       - name: Generate files
         run: go generate ./...
       - name: Check for changes in generated code
