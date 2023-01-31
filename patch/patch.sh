@@ -30,7 +30,7 @@ git_cherry_pick refs/changes/13/28513/28 # 25813: capo: Calico Policies plugin |
 git_cherry_pick refs/changes/74/37274/5 # 37274: af_xdp: fix xdp socket create fail | https://gerrit.fd.io/r/c/vpp/+/37274
 git_cherry_pick refs/changes/63/37763/4 # 37763: wireguard: add local variable | https://gerrit.fd.io/r/c/vpp/+/37763
 git_cherry_pick refs/changes/01/38001/9 # 38001: wireguard: sending the first handshake | https://gerrit.fd.io/r/c/vpp/+/38001
-git_cherry_pick refs/changes/00/38000/4 # 38000: wireguard: update ESTABLISHED flag | https://gerrit.fd.io/r/c/vpp/+/38000
+git_cherry_pick refs/changes/00/38000/4 # 38000: wireguard: update ESTABLISHED flag | https://gerrit.fd.io/r/c/vpp/+/38000 
 
 if [ "$(ls ./patch/*.patch 2> /dev/null)" ]; then
   git apply patch/*.patch
