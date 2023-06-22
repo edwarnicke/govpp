@@ -1,0 +1,86 @@
+---
+name: Update dependent repositories
+on:
+  workflow_call:
+    inputs:
+      docker_tag:
+        type: string
+        required: true
+    secrets:
+      token:
+        required: true
+jobs:
+  update-dependent-repositories:
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        repository:
+          - sdk-vpp
+          - cmd-forwarder-vpp
+          - cmd-nse-vlan-vpp
+          - cmd-nse-vl3-vpp
+          - cmd-nse-firewall-vpp
+          - cmd-nsc-vpp
+          - cmd-nse-icmp-responder-vpp
+          - cmd-nsc-simple-docker
+          - cmd-nse-simple-vl3-docker
+    name: Update ${{ matrix.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ${{ github.repository }}
+        uses: actions/checkout@v2
+        with:
+          path: ${{ github.repository }}
+          repository: ${{ github.repository }}
+      - name: Find merged PR
+        uses: jwalton/gh-find-current-pr@v1.3.2
+        id: findPr
+        with:
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.token }}
+      - name: Create commit message
+        working-directory: ${{ github.repository }}
+        run: |
+          echo "Update go.mod and go.sum to latest version from ${{ github.repository }}@main" >> /tmp/commit-message
+          echo "PR link: https://github.com/${{ github.repository }}/pull/${{ steps.findPr.outputs.pr }}" >> /tmp/commit-message
+          echo "" >> /tmp/commit-message
+          LOG_MSG=$(git log --date=iso --pretty='format:Commit: %h%nAuthor: %an%nDate: %ad%nMessage:%n  - %B%n' -1 | sed '/^$/d;$d')
+          for((i=2;i<=18;i+=2)); do n=$(printf '%*s' $((i+2))) m=$(printf '%*s' $i) LOG_MSG=$(echo "$LOG_MSG" | tr '\n' '|' | sed "s/${m}-/${n}-/2g" | tr '|' '\n'); done
+          echo "$LOG_MSG" >> /tmp/commit-message
+          echo "Commit Message:"
+          cat /tmp/commit-message
+      - name: Checkout networkservicemesh/${{ matrix.repository }}
+        uses: actions/checkout@v2
+        with:
+          path: networkservicemesh/${{ matrix.repository }}
+          repository: networkservicemesh/${{ matrix.repository }}
+          token: ${{ secrets.token }}
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.20.5
+      - name: Update ${{ matrix.repository }} locally
+        working-directory: networkservicemesh/${{ matrix.repository }}
+        run: |
+          go get -u github.com/${{ github.repository }}@${{ github.sha }}
+          go mod tidy
+          git diff
+      - name: Find and Replace version
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "VPP_VERSION=.*"
+          replace: "VPP_VERSION=${{ inputs.docker_tag }}"
+      - name: Push update to the ${{ matrix.repository }}
+        working-directory: networkservicemesh/${{ matrix.repository }}
+        run: |
+          echo Starting to update repositotry ${{ matrix.repository }}
+          git config --global user.email "nsmbot@networkservicmesh.io"
+          git config --global user.name "NSMBot"
+          git add .
+          if ! [ -n "$(git diff --cached --exit-code)" ]; then
+            echo ${{ matrix.repository }} is up to date
+            exit 0;
+          fi
+          git commit -s -F /tmp/commit-message
+          git checkout -b update/${{ github.repository }}
+          git push -f origin update/${{ github.repository }}

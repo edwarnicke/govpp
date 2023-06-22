@@ -41,8 +41,7 @@ Because things are very heavily patterned and generated, its really quite easy:
 
 1. Change default value for ARG VPP_VERSION in [Dockerfile](https://github.com/edwarnicke/govpp/blob/main/Dockerfile#L1) to the vpp tag or commit id you want to build.
 2. ```go generate ./...```
-3. Add a GHCR_TOKEN secret to your fork containing a PAT allowing you to push to your [Github Container Registry](https://docs.github.com/en/free-pro-team@latest/packages/managing-container-images-with-github-container-registry/pushing-and-pulling-docker-images)
-4. Push a PR to your fork and merge it.  This will push the vpp and vpp-dbg images to your repo.
+3. Push a PR to your fork and merge it.  This will push the vpp and vpp-dbg images to your repo.
 
 ## What to do if you need to cherrypick into VPP
 
