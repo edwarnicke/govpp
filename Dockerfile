@@ -34,14 +34,14 @@ COPY --from=vppbuild ["/vpp/build-root/libvppinfra-dev_*_amd64.deb", "/vpp/build
 RUN VPP_INSTALL_SKIP_SYSCTL=false apt install -f -y --no-install-recommends ./*.deb
 
 
-FROM golang:1.15.3-alpine3.12 as binapi-generator
+FROM golang:1.20.5-alpine3.18 as binapi-generator
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
 ENV GOBIN=/bin
 ARG GOVPP_VERSION
-RUN go get git.fd.io/govpp.git/cmd/binapi-generator@${GOVPP_VERSION}
+RUN go install git.fd.io/govpp.git/cmd/binapi-generator@${GOVPP_VERSION}
 
-FROM alpine:3.12 as gen
+FROM alpine:3.18 as gen
 COPY --from=vpp /usr/share/vpp/api/ /usr/share/vpp/api/
 COPY --from=binapi-generator /bin/binapi-generator /bin/binapi-generator
 COPY --from=vppbuild /vpp/VPP_VERSION /VPP_VERSION

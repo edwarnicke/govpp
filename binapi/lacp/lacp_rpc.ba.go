@@ -8,7 +8,7 @@ import (
 	"io"
 
 	api "git.fd.io/govpp.git/api"
-	memclnt "github.com/edwarnicke/govpp/binapi/memclnt"
+	memclnt "github.com/networkservicemesh/govpp/binapi/memclnt"
 )
 
 // RPCService defines RPC service lacp.
