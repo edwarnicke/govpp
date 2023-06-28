@@ -16,4 +16,5 @@
 
 package govpp
 
-//go:generate bash -c "docker run -e PKGPREFIX=$(go list)/binapi -v $(go list -f '{{ .Dir }}'):/gen $(docker build . -q --build-arg GOVPP_VERSION=$(go list -m -f '{{ .Version }}'  git.fd.io/govpp.git))"
+//go:generate bash -c "docker buildx build -t govpp:gogenerate . -q --build-arg GOVPP_VERSION=$(go list -m -f '{{ .Version }}' git.fd.io/govpp.git) --load"
+//go:generate bash -c "docker run -e PKGPREFIX=$(go list)/binapi -v $(go list -f '{{ .Dir }}'):/gen govpp:gogenerate"
