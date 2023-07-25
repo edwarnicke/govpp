@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 
-	api "git.fd.io/govpp.git/api"
 	memclnt "github.com/networkservicemesh/govpp/binapi/memclnt"
+	api "go.fd.io/govpp/api"
 )
 
 // RPCService defines RPC service nat44_ed.
@@ -29,6 +29,7 @@ type RPCService interface {
 	Nat44EdSetFqOptions(ctx context.Context, in *Nat44EdSetFqOptions) (*Nat44EdSetFqOptionsReply, error)
 	Nat44EdShowFqOptions(ctx context.Context, in *Nat44EdShowFqOptions) (*Nat44EdShowFqOptionsReply, error)
 	Nat44EdVrfTablesDump(ctx context.Context, in *Nat44EdVrfTablesDump) (RPCService_Nat44EdVrfTablesDumpClient, error)
+	Nat44EdVrfTablesV2Dump(ctx context.Context, in *Nat44EdVrfTablesV2Dump) (RPCService_Nat44EdVrfTablesV2DumpClient, error)
 	Nat44ForwardingEnableDisable(ctx context.Context, in *Nat44ForwardingEnableDisable) (*Nat44ForwardingEnableDisableReply, error)
 	Nat44IdentityMappingDump(ctx context.Context, in *Nat44IdentityMappingDump) (RPCService_Nat44IdentityMappingDumpClient, error)
 	Nat44InterfaceAddDelFeature(ctx context.Context, in *Nat44InterfaceAddDelFeature) (*Nat44InterfaceAddDelFeatureReply, error)
@@ -205,7 +206,7 @@ func (c *serviceClient) Nat44EdOutputInterfaceGet(ctx context.Context, in *Nat44
 }
 
 type RPCService_Nat44EdOutputInterfaceGetClient interface {
-	Recv() (*Nat44EdOutputInterfaceDetails, error)
+	Recv() (*Nat44EdOutputInterfaceDetails, *Nat44EdOutputInterfaceGetReply, error)
 	api.Stream
 }
 
@@ -213,22 +214,26 @@ type serviceClient_Nat44EdOutputInterfaceGetClient struct {
 	api.Stream
 }
 
-func (c *serviceClient_Nat44EdOutputInterfaceGetClient) Recv() (*Nat44EdOutputInterfaceDetails, error) {
+func (c *serviceClient_Nat44EdOutputInterfaceGetClient) Recv() (*Nat44EdOutputInterfaceDetails, *Nat44EdOutputInterfaceGetReply, error) {
 	msg, err := c.Stream.RecvMsg()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	switch m := msg.(type) {
 	case *Nat44EdOutputInterfaceDetails:
-		return m, nil
+		return m, nil, nil
 	case *Nat44EdOutputInterfaceGetReply:
+		if err := api.RetvalToVPPApiError(m.Retval); err != nil {
+			c.Stream.Close()
+			return nil, m, err
+		}
 		err = c.Stream.Close()
 		if err != nil {
-			return nil, err
+			return nil, m, err
 		}
-		return nil, io.EOF
+		return nil, m, io.EOF
 	default:
-		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
+		return nil, nil, fmt.Errorf("unexpected message: %T %v", m, m)
 	}
 }
 
@@ -290,6 +295,49 @@ func (c *serviceClient_Nat44EdVrfTablesDumpClient) Recv() (*Nat44EdVrfTablesDeta
 	}
 	switch m := msg.(type) {
 	case *Nat44EdVrfTablesDetails:
+		return m, nil
+	case *memclnt.ControlPingReply:
+		err = c.Stream.Close()
+		if err != nil {
+			return nil, err
+		}
+		return nil, io.EOF
+	default:
+		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
+	}
+}
+
+func (c *serviceClient) Nat44EdVrfTablesV2Dump(ctx context.Context, in *Nat44EdVrfTablesV2Dump) (RPCService_Nat44EdVrfTablesV2DumpClient, error) {
+	stream, err := c.conn.NewStream(ctx)
+	if err != nil {
+		return nil, err
+	}
+	x := &serviceClient_Nat44EdVrfTablesV2DumpClient{stream}
+	if err := x.Stream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err = x.Stream.SendMsg(&memclnt.ControlPing{}); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type RPCService_Nat44EdVrfTablesV2DumpClient interface {
+	Recv() (*Nat44EdVrfTablesV2Details, error)
+	api.Stream
+}
+
+type serviceClient_Nat44EdVrfTablesV2DumpClient struct {
+	api.Stream
+}
+
+func (c *serviceClient_Nat44EdVrfTablesV2DumpClient) Recv() (*Nat44EdVrfTablesV2Details, error) {
+	msg, err := c.Stream.RecvMsg()
+	if err != nil {
+		return nil, err
+	}
+	switch m := msg.(type) {
+	case *Nat44EdVrfTablesV2Details:
 		return m, nil
 	case *memclnt.ControlPingReply:
 		err = c.Stream.Close()
