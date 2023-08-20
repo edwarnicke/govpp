@@ -24,8 +24,11 @@ jobs:
           config_file: .ci/yamllint.yml
           strict: true
   generate:
+    strategy:
+      matrix:
+        runson: [ubuntu-latest, [self-hosted, linux, arm64]]
     name: generate
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runson }}
     steps:
       - name: Check out code
         uses: actions/checkout@v2
