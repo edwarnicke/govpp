@@ -1,8 +1,8 @@
 #!/bin/bash
 set -ex
 
-git config --global user.name "John Doe"
-git config --global user.email "johndoe@example.com"
+git config user.name "John Doe"
+git config user.email "johndoe@example.com"
 
 function git_cherry_pick ()
 {
