@@ -1,6 +1,6 @@
-ARG VPP_VERSION=e416893a597959509c7f667c140c271c0bb78c14
+ARG VPP_VERSION=1765f014bc7fcc3b924019ec96350eb50bef629f
 ARG UBUNTU_VERSION=20.04
-ARG GOVPP_VERSION=v0.3.5
+ARG GOVPP_VERSION=v0.8.0
 
 FROM ubuntu:${UBUNTU_VERSION} as vppbuild
 ARG VPP_VERSION
@@ -39,11 +39,11 @@ ENV GO111MODULE=on
 ENV CGO_ENABLED=0
 ENV GOBIN=/bin
 ARG GOVPP_VERSION
-RUN go install git.fd.io/govpp.git/cmd/binapi-generator@${GOVPP_VERSION}
+RUN go install go.fd.io/govpp/cmd/binapi-generator@${GOVPP_VERSION}
 
 FROM alpine:3.18 as gen
 COPY --from=vpp /usr/share/vpp/api/ /usr/share/vpp/api/
 COPY --from=binapi-generator /bin/binapi-generator /bin/binapi-generator
 COPY --from=vppbuild /vpp/VPP_VERSION /VPP_VERSION
 WORKDIR /gen
-CMD VPP_VERSION=$(cat /VPP_VERSION) binapi-generator ${PKGPREFIX+-import-prefix ${PKGPREFIX}}
+CMD VPP_VERSION=$(cat /VPP_VERSION) binapi-generator --input=/usr/share/vpp/api/ ${PKGPREFIX+--import-prefix ${PKGPREFIX}}

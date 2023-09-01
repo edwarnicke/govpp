@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 
-	api "git.fd.io/govpp.git/api"
 	memclnt "github.com/networkservicemesh/govpp/binapi/memclnt"
+	api "go.fd.io/govpp/api"
 )
 
 // RPCService defines RPC service ip.
@@ -55,6 +55,7 @@ type RPCService interface {
 	SetIPFlowHash(ctx context.Context, in *SetIPFlowHash) (*SetIPFlowHashReply, error)
 	SetIPFlowHashRouterID(ctx context.Context, in *SetIPFlowHashRouterID) (*SetIPFlowHashRouterIDReply, error)
 	SetIPFlowHashV2(ctx context.Context, in *SetIPFlowHashV2) (*SetIPFlowHashV2Reply, error)
+	SetIPFlowHashV3(ctx context.Context, in *SetIPFlowHashV3) (*SetIPFlowHashV3Reply, error)
 	SwInterfaceIP6EnableDisable(ctx context.Context, in *SwInterfaceIP6EnableDisable) (*SwInterfaceIP6EnableDisableReply, error)
 	SwInterfaceIP6GetLinkLocalAddress(ctx context.Context, in *SwInterfaceIP6GetLinkLocalAddress) (*SwInterfaceIP6GetLinkLocalAddressReply, error)
 	SwInterfaceIP6SetLinkLocalAddress(ctx context.Context, in *SwInterfaceIP6SetLinkLocalAddress) (*SwInterfaceIP6SetLinkLocalAddressReply, error)
@@ -359,7 +360,7 @@ func (c *serviceClient) IPPathMtuGet(ctx context.Context, in *IPPathMtuGet) (RPC
 }
 
 type RPCService_IPPathMtuGetClient interface {
-	Recv() (*IPPathMtuDetails, error)
+	Recv() (*IPPathMtuDetails, *IPPathMtuGetReply, error)
 	api.Stream
 }
 
@@ -367,22 +368,26 @@ type serviceClient_IPPathMtuGetClient struct {
 	api.Stream
 }
 
-func (c *serviceClient_IPPathMtuGetClient) Recv() (*IPPathMtuDetails, error) {
+func (c *serviceClient_IPPathMtuGetClient) Recv() (*IPPathMtuDetails, *IPPathMtuGetReply, error) {
 	msg, err := c.Stream.RecvMsg()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	switch m := msg.(type) {
 	case *IPPathMtuDetails:
-		return m, nil
+		return m, nil, nil
 	case *IPPathMtuGetReply:
+		if err := api.RetvalToVPPApiError(m.Retval); err != nil {
+			c.Stream.Close()
+			return nil, m, err
+		}
 		err = c.Stream.Close()
 		if err != nil {
-			return nil, err
+			return nil, m, err
 		}
-		return nil, io.EOF
+		return nil, m, io.EOF
 	default:
-		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
+		return nil, nil, fmt.Errorf("unexpected message: %T %v", m, m)
 	}
 }
 
@@ -878,6 +883,15 @@ func (c *serviceClient) SetIPFlowHashRouterID(ctx context.Context, in *SetIPFlow
 
 func (c *serviceClient) SetIPFlowHashV2(ctx context.Context, in *SetIPFlowHashV2) (*SetIPFlowHashV2Reply, error) {
 	out := new(SetIPFlowHashV2Reply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
+func (c *serviceClient) SetIPFlowHashV3(ctx context.Context, in *SetIPFlowHashV3) (*SetIPFlowHashV3Reply, error) {
+	out := new(SetIPFlowHashV3Reply)
 	err := c.conn.Invoke(ctx, in, out)
 	if err != nil {
 		return nil, err

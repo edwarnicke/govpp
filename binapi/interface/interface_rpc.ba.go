@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 
-	api "git.fd.io/govpp.git/api"
 	memclnt "github.com/networkservicemesh/govpp/binapi/memclnt"
+	api "go.fd.io/govpp/api"
 )
 
 // RPCService defines RPC service interface.
@@ -23,6 +23,9 @@ type RPCService interface {
 	GetBuffersStats(ctx context.Context, in *GetBuffersStats) (*GetBuffersStatsReply, error)
 	HwInterfaceSetMtu(ctx context.Context, in *HwInterfaceSetMtu) (*HwInterfaceSetMtuReply, error)
 	InterfaceNameRenumber(ctx context.Context, in *InterfaceNameRenumber) (*InterfaceNameRenumberReply, error)
+	PcapSetFilterFunction(ctx context.Context, in *PcapSetFilterFunction) (*PcapSetFilterFunctionReply, error)
+	PcapTraceOff(ctx context.Context, in *PcapTraceOff) (*PcapTraceOffReply, error)
+	PcapTraceOn(ctx context.Context, in *PcapTraceOn) (*PcapTraceOnReply, error)
 	SwInterfaceAddDelAddress(ctx context.Context, in *SwInterfaceAddDelAddress) (*SwInterfaceAddDelAddressReply, error)
 	SwInterfaceAddDelMacAddress(ctx context.Context, in *SwInterfaceAddDelMacAddress) (*SwInterfaceAddDelMacAddressReply, error)
 	SwInterfaceAddressReplaceBegin(ctx context.Context, in *SwInterfaceAddressReplaceBegin) (*SwInterfaceAddressReplaceBeginReply, error)
@@ -139,6 +142,33 @@ func (c *serviceClient) HwInterfaceSetMtu(ctx context.Context, in *HwInterfaceSe
 
 func (c *serviceClient) InterfaceNameRenumber(ctx context.Context, in *InterfaceNameRenumber) (*InterfaceNameRenumberReply, error) {
 	out := new(InterfaceNameRenumberReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
+func (c *serviceClient) PcapSetFilterFunction(ctx context.Context, in *PcapSetFilterFunction) (*PcapSetFilterFunctionReply, error) {
+	out := new(PcapSetFilterFunctionReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
+func (c *serviceClient) PcapTraceOff(ctx context.Context, in *PcapTraceOff) (*PcapTraceOffReply, error) {
+	out := new(PcapTraceOffReply)
+	err := c.conn.Invoke(ctx, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, api.RetvalToVPPApiError(out.Retval)
+}
+
+func (c *serviceClient) PcapTraceOn(ctx context.Context, in *PcapTraceOn) (*PcapTraceOnReply, error) {
+	out := new(PcapTraceOnReply)
 	err := c.conn.Invoke(ctx, in, out)
 	if err != nil {
 		return nil, err
@@ -416,7 +446,7 @@ func (c *serviceClient) SwInterfaceTxPlacementGet(ctx context.Context, in *SwInt
 }
 
 type RPCService_SwInterfaceTxPlacementGetClient interface {
-	Recv() (*SwInterfaceTxPlacementDetails, error)
+	Recv() (*SwInterfaceTxPlacementDetails, *SwInterfaceTxPlacementGetReply, error)
 	api.Stream
 }
 
@@ -424,22 +454,26 @@ type serviceClient_SwInterfaceTxPlacementGetClient struct {
 	api.Stream
 }
 
-func (c *serviceClient_SwInterfaceTxPlacementGetClient) Recv() (*SwInterfaceTxPlacementDetails, error) {
+func (c *serviceClient_SwInterfaceTxPlacementGetClient) Recv() (*SwInterfaceTxPlacementDetails, *SwInterfaceTxPlacementGetReply, error) {
 	msg, err := c.Stream.RecvMsg()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	switch m := msg.(type) {
 	case *SwInterfaceTxPlacementDetails:
-		return m, nil
+		return m, nil, nil
 	case *SwInterfaceTxPlacementGetReply:
+		if err := api.RetvalToVPPApiError(m.Retval); err != nil {
+			c.Stream.Close()
+			return nil, m, err
+		}
 		err = c.Stream.Close()
 		if err != nil {
-			return nil, err
+			return nil, m, err
 		}
-		return nil, io.EOF
+		return nil, m, io.EOF
 	default:
-		return nil, fmt.Errorf("unexpected message: %T %v", m, m)
+		return nil, nil, fmt.Errorf("unexpected message: %T %v", m, m)
 	}
 }
 
