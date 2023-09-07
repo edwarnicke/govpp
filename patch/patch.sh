@@ -12,6 +12,9 @@ function git_cherry_pick ()
 	git commit --amend -m "gerrit:${refs#refs/changes/*/} $(git log -1 --pretty=%B)"
 }
 
+# NSM cherry picks
+git_cherry_pick refs/changes/03/39503/1 # 39503: vppinfra: fix setns typo | https://gerrit.fd.io/r/c/vpp/+/39503
+
 # Calico cherry picks
 git_cherry_pick refs/changes/26/34726/3 # 34726: interface: add buffer stats api | https://gerrit.fd.io/r/c/vpp/+/34726
 
