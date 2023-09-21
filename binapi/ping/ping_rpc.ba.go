@@ -10,7 +10,7 @@ import (
 
 // RPCService defines RPC service ping.
 type RPCService interface {
-	WantPingEvents(ctx context.Context, in *WantPingEvents) (*WantPingEventsReply, error)
+	WantPingFinishedEvents(ctx context.Context, in *WantPingFinishedEvents) (*WantPingFinishedEventsReply, error)
 }
 
 type serviceClient struct {
@@ -21,8 +21,8 @@ func NewServiceClient(conn api.Connection) RPCService {
 	return &serviceClient{conn}
 }
 
-func (c *serviceClient) WantPingEvents(ctx context.Context, in *WantPingEvents) (*WantPingEventsReply, error) {
-	out := new(WantPingEventsReply)
+func (c *serviceClient) WantPingFinishedEvents(ctx context.Context, in *WantPingFinishedEvents) (*WantPingFinishedEventsReply, error) {
+	out := new(WantPingFinishedEventsReply)
 	err := c.conn.Invoke(ctx, in, out)
 	if err != nil {
 		return nil, err
